@@ -1,0 +1,70 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #ffffff;">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" href="{% url 'home' %}" style="font-weight: bold; color: #6f4f28;">SkyriseDecor</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <li class="nav-item"><a class="nav-link" style="color: #055160;" aria-current="page" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'about' %}">About</a></li>
+                <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'adminlog:admin_login' %}">Admin</a></li>
+                
+                {% if not user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'login' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'register' %}">Register</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'logout' %}">Logout</a></li>
+
+                    <!-- Categories Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #055160;">Categories</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'product_home' %}" style="color: #055160;">All Products</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" href="#" style="color: #055160;">Programming Books</a></li>
+                            <li><a class="dropdown-item" href="#" style="color: #055160;">Marketing Books</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Search Bar -->
+                    <li class="nav-item">
+                        <form class="d-flex" action="" method="GET">
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="q">
+                            <button class="btn btn-outline-success" type="submit">Search</button>
+                        </form>
+                    </li>
+                {% endif %}
+            </ul>
+
+            <!-- User Profile, Cart, and Wishlist -->
+            <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                <!-- User Icon and Username -->
+                <a href="{% url 'profile_main' %}" class="btn btn-light d-flex align-items-center me-2" style="border: none;">
+                    <img src="{% static 'icons/user.png' %}" alt="User Icon" style="width: 24px; height: 24px;" class="me-1">
+                    <span style="font-size: 14px; color: #055160;">{{ user.username }}</span>
+                </a>
+
+                <!-- Cart Button -->
+                <a href="{% url 'cart_summary' %}" class="btn btn-light d-flex align-items-center me-2 position-relative" style="border: none;">
+                    <i class="bi-cart-fill" style="font-size: 24px; color: #055160;"></i>
+                    {% if cart_count > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark text-white" style="font-size: 12px; transform: translate(50%, -50%);">
+                            {{ cart_count }}
+                        </span>
+                    {% endif %}
+                </a>
+
+                <!-- Wishlist Button -->
+                <a href="{% url 'wishlist' %}" class="btn btn-light d-flex align-items-center" style="border: none;">
+                    <img src="{% static 'icons/wishlist-icon.png' %}" alt="Wishlist Icon" style="width: 24px; height: 24px;" class="me-1">
+                    <span class="badge bg-dark text-white ms-1 rounded-pill" id="wishlist_quantity">{{ wishlist_count }}</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

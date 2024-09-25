@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+    <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
+        <div class="text-center">
+            <h1 class="display-4 mb-4 text-success">Payment Successful</h1>
+            <p class="lead mb-4">Thank you for your payment!</p>
+
+            <div class="card text-left w-100" style="max-width: 600px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Your order ID is: <strong>{{ order.id }}</strong></p>
+                    <p class="card-text">Payment ID: <strong>{{ payment_id }}</strong></p>
+                    <p class="card-text">Total Amount: <strong>₹{{ amount }}</strong></p>
+                    <p class="card-text">Your order will be processed shortly.</p>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'order_summary' order_number=order.order_number %}" class="btn btn-primary">View Order Summary</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<style>
+/* Custom table styles */
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: bold;
+}
+
+.table td, .table th {
+    padding: 1rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Center table in the container */
+.table-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+/* Overall sales details styling */
+.sales-details {
+    border: 2px solid #dee2e6;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    margin-bottom: 2rem;
+}
+
+.sales-details h3 {
+    margin-bottom: 1rem;
+    color: #495057;
+    font-weight: bold;
+}
+
+.sales-details p {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Scrollable table container */
+.scrollable-table {
+    overflow-y: auto;
+    max-height: 500px;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Pagination controls */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.page-item {
+    margin: 0 0.5rem;
+}
+
+.page-item a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.page-item.active a {
+    font-weight: bold;
+}
+
+.page-item.disabled a {
+    color: #6c757d;
+    cursor: not-allowed;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container mt-5">
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search by name or code">
+            <div class="input-group-append">
+                <button class="btn btn-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Filter Form -->
+    <div class="filter-form">
+        <h4>Filter Sales Report</h4>
+        <form method="GET" action="{% url 'sale_report' %}">
+            <div class="form-group">
+                <label for="filter" class="text-dark">Filter By:</label>
+                <select id="filter" name="filter" class="form-control">
+                    <option value="all" {% if request.GET.filter == 'all' %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if request.GET.filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="weekly" {% if request.GET.filter == 'weekly' %}selected{% endif %}>This Week</option>
+                    <option value="monthly" {% if request.GET.filter == 'monthly' %}selected{% endif %}>This Month</option>
+                    <option value="yearly" {% if request.GET.filter == 'yearly' %}selected{% endif %}>This Year</option>
+                    <option value="custom" {% if request.GET.filter == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="custom-dates" style="{% if request.GET.filter != 'custom' %}display: none;{% endif %}">
+                <label for="start_date" class="text-dark">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                <label for="end_date" class="text-dark">End Date:</label>
+                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+        </form>
+    </div>
+
+    <!-- Sales Chart -->
+    <div class="mt-5">
+        <h3>Sales Chart</h3>
+        <canvas id="salesChart"></canvas>
+    </div>
+
+    <!-- Filter Links -->
+    <div class="mb-4">
+        <a href="{% url 'sales_report_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-secondary">Download PDF</a>
+        <a href="{% url 'sales_report_excel' %}?{{ request.GET.urlencode }}" class="btn btn-secondary">Download Excel</a>
+    </div>
+
+    <!-- Overall Sales Details -->
+    <div class="sales-details">
+        <h3>Overall Sales Details</h3>
+        <p><strong>Total Sales Count:</strong> {{ overall_sales_count }}</p>
+        <p><strong>Total Success Order Amount:</strong> {{ overall_success_amount|floatformat:2 }}</p>
+        <p><strong>Total Discount Given:</strong> {{ overall_discount|floatformat:2 }}</p>
+        <p><strong>Success Order Count:</strong> {{ success_order_count }}</p>
+        <p><strong>Cancelled Order Count:</strong> {{ cancelled_order_count }}</p>
+        <p><strong>Returned Order Count:</strong> {{ returned_order_count }}</p>
+        <p><strong>Return Request Count:</strong> {{ return_request_count }}</p>
+        <p><strong>In Progress Count:</strong> {{ in_progress_count }}</p>
+    </div>
+
+    <!-- Sales Report Table -->
+    <div class="table-container">
+        <div class="scrollable-table">
+            <div class="table-heading">SALES REPORT</div>
+            <table class="table table-bordered text-center">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Username</th>
+                        <th>Order Item ID</th>
+                        <th>Order Date</th>
+                        <th>Product Title</th>
+                        <th>Original Price</th>
+                        <th>Sold Price</th>
+                        <th>Quantity</th>
+                        <th>Product Discount</th>
+                        <th>Total Amount</th>
+                        <th>Order Status</th>
+                        <th>Payment Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        {% for item in order.items.all %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.user.username }}</td>
+                                <td>{{ item.id }}</td>
+                                <td>{{ order.created_at }}</td>
+                                <td>{{ item.product.title }}</td>
+                                <td>{{ item.product.original_price }}</td>
+                                <td>{{ item.total_price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.product.get_best_offer }}%</td>
+                                <td>{{ order.grand_total }}</td>
+                                <td>{{ order.status }}</td>
+                                <td>{{ order.payment_method }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination Controls -->
+            <div class="pagination">
+                <span class="page-item {% if not orders.has_previous %}disabled{% endif %}">
+                    <a href="?{% if orders.has_previous %}page={{ orders.previous_page_number }}&{% endif %}{{ request.GET.urlencode }}">Previous</a>
+                </span>
+                {% for page_num in orders.paginator.page_range %}
+                    <span class="page-item {% if orders.number == page_num %}active{% endif %}">
+                        <a href="?page={{ page_num }}&{{ request.GET.urlencode }}">{{ page_num }}</a>
+                    </span>
+                {% endfor %}
+                <span class="page-item {% if not orders.has_next %}disabled{% endif %}">
+                    <a href="?{% if orders.has_next %}page={{ orders.next_page_number }}&{% endif %}{{ request.GET.urlencode }}">Next</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('filter').addEventListener('change', function() {
+        var customDates = document.getElementById('custom-dates');
+        if (this.value === 'custom') {
+            customDates.style.display = 'block';
+        } else {
+            customDates.style.display = 'none';
+        }
+    });
+
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'bar', 
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Sales',
+                data: {{ chart_data|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Products'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

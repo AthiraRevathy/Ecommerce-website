@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Ensure the wishlist container is centered vertically and horizontally */
+    .wishlist-container {
+        display: flex;
+        justify-content: center;   /* Horizontally center */
+        align-items: center;       /* Vertically center */
+        flex-direction: column;    /* Stack child elements vertically */
+        min-height: 80vh;          /* Occupy most of the viewport height */
+        margin: 0 auto;            /* Center the container horizontally */
+        padding: 0 15px;           /* Optional padding on the sides */
+    }
+
+    .wishlist-container h2 {
+        margin-bottom: 20px;
+        color: #343a40;
+        text-align: center;  /* Center the title text */
+    }
+
+    .wishlist-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;  /* Space between the image and details */
+        margin-bottom: 20px;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 20px;
+        width: 100%;          /* Full width inside the container */
+        max-width: 800px;     /* Limit maximum width */
+    }
+
+    .wishlist-item img {
+        width: 150px;        /* Adjust image size */
+        height: 100px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .wishlist-item-details {
+        flex: 1;             /* Take up remaining space */
+        margin-left: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .wishlist-item h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        color: #007bff;
+    }
+
+    .wishlist-item .price {
+        color: #ff5722;
+        font-weight: bold;
+    }
+
+    .wishlist-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-view, .btn-remove {
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        text-align: center;
+        display: inline-block;
+    }
+
+    .btn-view {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-view:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-remove {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .btn-remove:hover {
+        background-color: #c82333;
+    }
+
+    /* Style for alert messages */
+    .alert-container {
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .wishlist-item {
+            flex-direction: column;  /* Stack image and details vertically on small screens */
+            align-items: flex-start;
+        }
+
+        .wishlist-item img {
+            width: 100%;
+            height: auto;  /* Let image scale naturally on small screens */
+        }
+
+        .wishlist-item-details {
+            margin-left: 0;  /* Reset margin for small screens */
+            margin-top: 10px;
+        }
+
+        .wishlist-buttons {
+            flex-direction: column;
+            gap: 5px;
+        }
+    }
+</style>
+
+<div class="wishlist-container">
+    <h2>My Wishlist</h2>
+
+    <!-- Check if there are wishlist items -->
+    {% if wishlist_items %}
+        {% for item in wishlist_items %}
+        <div class="wishlist-item" data-product-id="{{ item.product.id }}">
+            <img src="{{ item.product.product_image.url }}" alt="{{ item.product.title }}">
+            <div class="wishlist-item-details">
+                <h3>{{ item.product.title }}</h3>
+                <p class="price">${{ item.product.original_price|floatformat:2 }}</p>
+                <div class="wishlist-buttons">
+                    <a href="{% url 'single_product' item.product.id %}" class="btn-view">View Product</a>
+                    <form action="{% url 'remove_from_wishlist' item.id %}" method="post" class="remove-wishlist-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-remove">Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>Your wishlist is empty.</p>
+    {% endif %}
+</div>
+
+
+    
+{% endblock %}

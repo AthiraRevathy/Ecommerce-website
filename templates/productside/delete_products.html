@@ -1,0 +1,28 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container tm-mt-big tm-mb-big">
+    <div class="row">
+        <div class="col-xl-9 col-lg-10 col-md-12 col-sm-12 mx-auto">
+            <div class="tm-bg-primary-dark tm-block tm-block-h-auto">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="tm-block-title d-inline-block">Confirm Product Deletion</h2>
+                    </div>
+                </div>
+                <div class="row tm-edit-product-row">
+                    <div class="col-xl-6 col-lg-6 col-md-12">
+                        <p class="text-danger">Are you sure you want to change the status "{{ product.title }}"?</p>
+                        <form action="{% url 'delete_products' product.pk %}" method="post">
+                            {% csrf_token %}
+                            <input type="submit" class="btn btn-danger" value="Change">
+                            <a href="{% url 'admin_products' %}" class="btn btn-secondary">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

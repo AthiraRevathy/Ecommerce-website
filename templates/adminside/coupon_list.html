@@ -1,0 +1,140 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Coupons</h2>
+    <a href="{% url 'coupon_add' %}" class="btn btn-primary mb-3">Add Coupon</a>
+    
+    <!-- Search Form -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search by name or code">
+            <div class="input-group-append">
+                <button class="btn btn-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+    
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Valid From</th>
+                <th>Valid To</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for coupon in coupons %}
+            <tr>
+                <td>{{ coupon.name }}</td>
+                <td>{{ coupon.code }}</td>
+                <td>{{ coupon.discount }}%</td>
+                <td>{{ coupon.valid_from }}</td>
+                <td>{{ coupon.valid_to }}</td>
+                <td>{{ coupon.get_status_display }}</td>
+                <td class="actions">
+                    <a href="{% url 'coupon_edit' coupon.pk %}" class="btn btn-warning btn-sm">Active</a>
+                    <a href="{% url 'coupon_delete' coupon.pk %}" class="btn btn-danger btn-sm">Inactive</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if coupons.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ coupons.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for i in coupons.paginator.page_range %}
+                {% if coupons.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i }} <span class="sr-only">(current)</span></span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            {% if coupons.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ coupons.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ coupons.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+
+    tbody tr:nth-child(odd) {
+        background-color: #f2f2f2;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+    }
+
+    .actions {
+        text-align: center;
+    }
+
+    .pagination {
+        justify-content: center;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+</style>
+{% endblock %}

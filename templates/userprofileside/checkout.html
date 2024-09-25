@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Add Address Button -->
+    <div class="row mb-4">
+        <div class="col-md-12 text-right">
+            <a href="{% url 'add_address' %}" class="btn" style="background-color: #2F4F4F; color: white;">Add Address</a>
+        </div>
+    </div>
+
+    <!-- Checkout Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="text-center">Checkout</h2>
+        </div>
+    </div>
+ 
+
+    <!-- Display Validation Messages -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+
+    <!-- Checkout Form -->
+    <form method="post" action="{% url 'checkout' %}" id="checkout-form">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Shipping Address -->
+            <div class="col-md-12 mb-4">
+                <h3 class="text-black">Shipping Address</h3>
+                <div class="form-group">
+                    <label for="selected_address">Select Address <span style="color: red;">*</span></label>
+                    <select id="selected_address" name="selected_address" class="form-control" required>
+                        <option value="" disabled selected>Select an address</option>
+                        {% for address in addresses %}
+                            <option value="{{ address.id }}" {% if address.id == selected_address %}selected{% endif %}>
+                                {{ address.address_line1 }}, {{ address.city }}, {{ address.state }} - {{ address.zip_code }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="col-md-12 mb-4">
+                <h3 class="text-black">Payment Method</h3>
+                <div class="form-group">
+                    <label>Select Payment Method <span class="text-danger">*</span></label>
+                    <div>
+                        <input type="radio" id="razorpay" name="payment_method" value="razorpay" class="form-check-input" required>
+                        <label for="razorpay" class="form-check-label">RazorPay</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="cod" name="payment_method" value="cod" class="form-check-input" required>
+                        <label for="cod" class="form-check-label">Cash on Delivery</label>
+                    </div>
+                    <div></div>
+                        <input type="radio" id="cod" name="payment_method" value="wallet" class="form-check-input" required>
+                        <label for="cod" class="form-check-label">Wallet</label>
+                        <span class="text-muted" style="margin-left: 8px;"><small>-Your current balance: Rs {{wallet_balance }}</small></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupon Code Section -->
+            
+             <!-- Coupon Code Section -->
+             <div class = 'row '>
+                <div class="col-md-8 mb-5">
+                    <h2 class="text-black h4">Coupon Code</h2>
+                    <div class="form-group">
+                        <label for="coupon_code">Enter your coupon code</label>
+                        <div class="input-group">
+                            <input type="text" id="coupon_code" name="coupon_code" class="form-control" placeholder="Enter coupon code">
+                            <div class="input-group-append">
+                                <button type="button" class="btn" style="background-color: #2F4F4F; color: white;" onclick="applyCoupon()">Apply Coupon</button>
+                                <button type="button" class="btn btn-danger ml-2" onclick="removeCoupon()">Remove Coupon</button>
+                            </div>
+                        </div>
+                        <p id="coupon_message" class="text-danger mt-2"></p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h2 class="text-black h4">Available Coupons</h2>
+                    <div class="form-group">
+                        <label for="couponDropdown">Here's a list of available coupons</label>
+                        <select id="couponDropdown" name="coupon_code" class="form-control">
+                            <option value="{{ coupon.code }}" disabled selected>YOUR COUPONS</option>
+                            {% for coupon in coupons %}
+                            <option value="{{ coupon.code }}">
+                                {{ coupon.code }} - {{ coupon.name }} ({{ coupon.discount }}% off, Valid From: {{ coupon.valid_from }}, Valid To: {{ coupon.valid_to }})
+                            </option>
+                            {% empty %}
+                            <option value="" disabled>No coupons available</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-md-12">
+                <h3 class="text-black">Order Summary</h3>
+                <table class="table table-bordered">
+                    <thead style="background-color: #2F4F4F; color: white;">
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                            <tr>
+                                <td>{{ item.product.title }}</td>
+                                <td>${{ item.product.original_price|floatformat:2 }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.total_price|floatformat:2 }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="3">Subtotal</td>
+                            <td>${{ total|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">Shipping Fee</td>
+                            <td>${{ shipping_fee }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">Discount</td>
+                            <td id="discount_amount">${{discount_amount|floatformat:2}}</td>
+                        </tr>
+                        
+                        <tr>
+                            <td colspan="3">Total</td>
+                            <td class="grand-total">${{ grand_total|floatformat:2 }}</td>
+                        </tr>
+                       
+                    </tbody>
+                </table>
+            </div>
+            
+            
+
+            <!-- Submit Button -->
+<div class="col-md-12 text-center"> <!-- Center the button -->
+    <button type="submit" style="background-color: #2F4F4F; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px;">Confirm Order</button> <!-- Custom green color -->
+</div>
+
+        </div>
+
+    </form>
+    
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include Razorpay checkout script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<!-- Scripts -->
+<script>
+    function togglePaymentButton(paymentMethod) {
+        const payButton = document.querySelector('button[name="pay_button"]');
+        if (payButton) {
+            payButton.disabled = !(paymentMethod === 'razorpay' || paymentMethod === 'cod');
+        }
+    }
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            togglePaymentButton(this.value);
+        });
+    });
+    
+    function applyCoupon() {
+    var couponCode = document.getElementById('coupon_code').value;
+    $.ajax({
+        type: 'POST',
+        url: '{% url "checkout" %}',
+        data: {
+            'action': 'apply',
+            'coupon_code': couponCode,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#coupon_message').text(response.message);
+                $('#discount_amount').text('$' + response.discount.toFixed(2)); // Update discount amount
+                $('.grand-total').text('$' + response.new_total.toFixed(2));  // Ensure this updates correctly
+            } else {
+                $('#coupon_message').text(response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+            $('#coupon_message').text("An error occurred. Please try again.");
+        }
+    });
+}
+
+function removeCoupon() {
+    $.ajax({
+        type: 'POST',
+        url: '{% url "checkout" %}',
+        data: {
+            'action': 'remove',
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#coupon_message').text(response.message);
+                $('#discount_amount').text('$0.00'); // Reset discount amount
+                $('.grand-total').text('$' + response.new_total.toFixed(2));
+            } else {
+                $('#coupon_message').text(response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+            $('#coupon_message').text("An error occurred. Please try again.");
+        }
+    });
+}
+
+</script>
+{% endblock %}

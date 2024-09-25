@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+
+            <!-- Order Summary Title -->
+            <h2 class="text-center mb-4">Order Summary</h2>
+
+            <!-- Shipping Address Card -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-teal text-white">
+                    <h5 class="mb-0">Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ formatted_address }}</p>
+                </div>
+            </div>
+
+            <!-- Payment Method Card -->
+<div class="card mb-4 border-primary">
+    <div class="card-header bg-teal text-white">
+        <h5 class="mb-0">Payment Method</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-0">
+           {% if order.payment_method %}
+               {{ order.payment_method }}
+           {% else %}
+               Payment method not specified
+           {% endif %}
+        </p>
+    </div>
+</div>
+
+            <!-- Order Details Card -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-teal text-white">
+                    <h5 class="mb-0">Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Image</th>
+                                <th class="text-center">Product</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td class="item-image">
+                                    <img src="{{ item.product.product_image.url }}" alt="{{ item.product.title }}" class="product-image">
+                                </td>
+                                <td class="item-name">
+                                    <a href="{% url 'single_product' item.product.id %}">{{ item.product.title }}</a>
+                                </td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-center">${{ item.total_price|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-teal text-white">
+                    <h5 class="mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <strong>Subtotal:</strong> <span>${{ total|floatformat:2 }}</span>
+                        </li>
+                       
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <strong>Shipping Fee:</strong> <span>${{ shipping_fee|floatformat:2 }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <strong>  Discount:</strong> <span>${{ discount_amount|floatformat:2 }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2">
+                            <strong>Grand Total:</strong> <span>${{ grand_total|floatformat:2 }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Place Order Button -->
+            <div class="text-center">
+                <form action="{% url 'place_order' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-teal btn-lg shadow-sm">Place Order</button>
+                </form>
+                <br><br>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Optional JavaScript -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<style>
+    .bg-teal {
+        background-color: #2F4F4F; /* Teal color for headers and buttons */
+    }
+
+    .btn-teal {
+        background-color: #2F4F4F; /* Teal color for button */
+        border-color: #009688;
+    }
+
+    .btn-teal:hover {
+        background-color: #2F4F4F; /* Darker teal shade on hover */
+        border-color: #2F4F4F;
+    }
+
+    .card-header {
+        background-color: #6D6E71; /* Teal color for card headers */
+        color: #ffffff; /* White text color */
+    }
+
+    .card-body {
+        color: #000000; /* Black text color for card body */
+    }
+
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .table th, .table td {
+        border: 1px solid #dddddd; /* Light grey border for table cells */
+    }
+
+    .table thead th {
+        background-color: #2F4F4F; /* Teal color for header background */
+        color: #ffffff; /* White text color */
+    }
+
+    .table tbody tr:nth-of-type(odd) {
+        background-color: #f9f9f9; /* Slightly off-white for odd rows */
+    }
+
+    .table tbody tr:nth-of-type(even) {
+        background-color: #ffffff; /* White for even rows */
+    }
+
+    .product-image {
+        width: 75px; /* Adjust the width as needed */
+        height: auto; /* Maintain aspect ratio */
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">My Wallet</h2>
+
+    <!-- Wallet Balance Section -->
+    <div class="wallet-balance mb-4">
+        <h3>Your Current Balance</h3>
+        <p class="wallet-balance-amount">${{ wallet_balance }}</p>
+    </div>
+
+    <!-- Filter Form Section -->
+    <div class="filter-form mb-4">
+        <h3>Filter Transactions</h3>
+        <form method="get" action="">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <input type="text" name="search" placeholder="Search transactions" class="form-control" value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select name="transaction_type" class="form-control">
+                        <option value="">All Types</option>
+                        <option value="credit" {% if request.GET.transaction_type == 'credit' %}selected{% endif %}>Credit</option>
+                        <option value="debit" {% if request.GET.transaction_type == 'debit' %}selected{% endif %}>Debit</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="{{ request.GET.start_date }}">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <input type="date" name="end_date" class="form-control" placeholder="End Date" value="{{ request.GET.end_date }}">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Transaction History Section -->
+    <div class="transaction-history">
+        <h3>Transaction History</h3>
+        <ul class="transaction-list">
+            {% for transaction in transactions %}
+                <li class="transaction-item">
+                    <span class="transaction-date">{{ transaction.created_at|date:"Y-m-d H:i" }}</span> 
+                    <span class="transaction-type">{{ transaction.transaction_type }}</span> 
+                    ${{ transaction.amount|floatformat:2 }} - 
+                    <span class="transaction-description">{{ transaction.description }}</span>
+                </li>
+            {% empty %}
+                <li class="no-transactions">No transactions found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="d-flex justify-content-center mt-4">
+        {% if transactions.has_previous %}
+            <a href="?page=1" class="btn btn-secondary me-2">First</a>
+            <a href="?page={{ transactions.previous_page_number }}" class="btn btn-secondary me-2">Previous</a>
+        {% endif %}
+        {% if transactions.has_next %}
+            <a href="?page={{ transactions.next_page_number }}" class="btn btn-secondary me-2">Next</a>
+            <a href="?page={{ transactions.paginator.num_pages }}" class="btn btn-secondary">Last</a>
+        {% endif %}
+    </div>
+</div>
+<br><br><br><br><br><br><br><br><br><br>
+{% block extra_scripts %}
+    <style>
+        .wallet-balance {
+            font-size: 1.5rem;
+            color: #007bff; /* Blue color */
+            margin-bottom: 20px;
+        }
+
+        .wallet-balance-amount {
+            font-size: 2rem;
+            color: #28a745; /* Green color */
+            font-weight: bold;
+        }
+
+        .transaction-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .transaction-item {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 1rem;
+            color: #495057;
+            background-color: #ffffff;
+            border-radius: 5px;
+        }
+
+        .transaction-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .transaction-date {
+            color: #6c757d;
+            margin-right: 5px;
+        }
+
+        .transaction-type {
+            font-weight: bold;
+            color: #28a745; /* Green color for transaction type */
+        }
+
+        .transaction-description {
+            color: #343a40;
+        }
+
+        .no-transactions {
+            text-align: center;
+            padding: 10px;
+            color: #dc3545; /* Red color for no transactions found */
+        }
+
+        .filter-form input,
+        .filter-form select {
+            margin-right: 10px;
+        }
+
+        .download-btn {
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+{% endblock %}

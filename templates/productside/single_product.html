@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* Custom Styles */
+    .color-circle {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin: 5px;
+        border: 2px solid #000;
+        cursor: pointer;
+        transition: border 0.3s;
+    }
+    .color-circle.active {
+        border: 3px solid #007bff;
+    }
+    .btn-custom {
+        background-color: #055160;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    .btn-custom:hover {
+        background-color: #8e994f;
+        color: white;
+    }
+    .breadcrumb-link {
+        color: #007bff;
+    }
+    .breadcrumb-link:hover {
+        color: #0056b3;
+    }
+    #brand-info {
+        display: none;
+        margin-top: 10px;
+    }
+    .review {
+        margin-bottom: 1rem;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .review .like-count {
+        margin-left: 0.5rem;
+    }
+    .carousel-item img {
+        max-height: 500px;
+        object-fit: cover;
+    }
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .product-colors {
+        margin-top: 1rem;
+    }
+    .product-colors h5 {
+        margin-bottom: 0.5rem;
+    }
+    .product-colors .color-list {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .related-products .card {
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .related-products .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+</style>
+
+<div class="container">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="breadcrumb-link">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'product_home' %}" class="breadcrumb-link">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Image Carousel -->
+        <div class="col-md-6 mb-4">
+            {% if product_images.exists %}
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for image in product_images %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" class="d-block w-100 zoom-image" alt="{{ product.title }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            {% else %}
+                <img src="{% static 'images/default-image.jpg' %}" class="img-fluid zoom-image" alt="Default image">
+            {% endif %}
+        </div>
+<!-- Product Details -->
+<div class="col-md-6">
+    <div class="card-body">
+        <h5 class="card-title">{{ product.title }}</h5>
+        <p class="card-text">{{ product.description }}</p>
+
+         <!-- Price with Offer -->
+         <div class="mb-2">
+            {% if product.discounted_price and product.discounted_price < product.original_price %}
+        <p class="card-text text-muted">
+            <del>${{ product.original_price|floatformat:2 }}</del>
+        </p>
+        <p class="text-primary font-weight-bold">
+            ${{ product.discounted_price|floatformat:2 }} <!-- Use discounted_price -->
+        </p>
+        <p class="text-success">
+            {{ product.get_best_offer }}% Off <!-- Assuming you have discount_percentage -->
+        </p>
+    {% else %}
+        <p class="text-primary font-weight-bold">
+            ${{ product.original_price|floatformat:2 }}
+        </p>
+        {% endif %}
+    
+        <p class="card-text">
+            {% if product.availability_status == 'in_stock' %}
+                <span class="badge bg-success">In Stock</span>
+            {% else %}
+                <span class="badge bg-danger">Out of Stock</span>
+            {% endif %}
+            </p>
+        </div>
+
+        <!-- Discounts or Coupons -->
+        {% if product.discount_percentage %}
+            <div class="text-success">Coupons available!</div>
+        {% endif %}
+
+        
+
+        <!-- Display Product Colors -->
+        <div class="product-colors">
+            <h5>Available Colors:</h5>
+            <div class="color-list">
+                {% if product.colors.exists %}
+                    {% for color in product.colors.all %}
+                        <span class="color-circle"
+                              style="background-color: {{ color.color_code }};"
+                              title="{{ color.color_name }}"
+                              data-color-code="{{ color.color_code }}">
+                        </span>
+                    {% endfor %}
+                {% else %}
+                    <p>No colors available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Select Size -->
+       <!-- Select Size -->
+<div class="product-sizes">
+    <h5>Select Size:</h5>
+    <form method="POST" id="add-to-cart-form" action="{% url 'add_to_cart' product.id %}">
+        {% csrf_token %}
+        <div>
+            <label for="size-select">Size:</label>
+            <select id="size-select" name="size" required>
+                {% for size in sizes %}
+                    <option value="{{ size.id }}">{{ size.size_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" id="color-input" name="color" value="">
+        <input type="number" id="quantity-input" name="quantity" value="1" min="1">
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-custom">Add to Cart</button>
+            <button type="submit" formaction="{% url 'home' %}" class="btn btn-custom">Home</button>
+            <button type="submit" formaction="{% url 'add_to_wishlist' product.id %}" class="btn btn-custom">Wishlist</button>
+            
+        </div>
+    </form>
+</div>
+ 
+    </div>
+</div>
+
+    </div>
+
+    <!-- Product Brand Information -->
+    <div id="brand-info" class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Brand Information</h5>
+            <p class="card-text">{{ product.brand.name }}</p>
+        </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="reviews mt-4">
+        <h4>Reviews:</h4>
+        {% for review in reviews %}
+            <div class="review">
+                <p><strong>{{ review.user.username }}:</strong> {{ review.text }}</p>
+                <div>
+                    <span class="like-count">{{ review.likes_count }} Likes</span>
+                </div>
+            </div>
+        {% empty %}
+            <p>No reviews yet.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Related Products -->
+    <div class="related-products mt-4">
+        <h4>Related Products:</h4>
+        <div class="row">
+            {% for related_product in related_products %}
+                <div class="col-md-4">
+                    <div class="card">
+                        <img src="{{ related_product.product_image.url }}" class="card-img-top" alt="{{ related_product.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ related_product.title }}</h5>
+                            <p class="card-text">${{ related_product.original_price }}</p>
+                            <a href="{% url 'single_product' related_product.id %}" class="btn btn-custom">View Product</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No related products found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script>
+    // Update hidden quantity input field based on select dropdown
+    document.getElementById('qty-cart').addEventListener('change', function() {
+        document.getElementById('quantity-input').value = this.value;
+    });
+
+    // Color circle click event listener
+    document.querySelectorAll('.color-circle').forEach(circle => {
+        circle.addEventListener('click', function () {
+            document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+
+
+{% endblock %}

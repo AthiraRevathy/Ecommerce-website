@@ -1,0 +1,45 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Review Cancellation Requests</h1>
+
+    {% if requests %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Order Number</th>
+                    <th>User</th>
+                    <th>Requested At</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                    <tr>
+                        <td>{{ request.order.order_number }}</td>
+                        <td>{{ request.order.user.get_full_name }}</td>
+                        <td>{{ request.requested_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ request.reason }}</td>
+                        <td>{{ request.status }}</td>
+                        <td>
+                            <form action="{% url 'process_cancellation_request' request.id 'approve' %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">Approve</button>
+                            </form>
+                            <form action="{% url 'process_cancellation_request' request.id 'reject' %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No pending cancellation requests at this time.</p>
+    {% endif %}
+</div>
+{% endblock %}

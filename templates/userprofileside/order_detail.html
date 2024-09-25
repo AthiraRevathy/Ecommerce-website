@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .order-detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-detail-content h2 {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .order-section {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-section h3 {
+        font-size: 22px;
+        margin-bottom: 15px;
+        color: #007bff;
+    }
+
+    .order-section p {
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #666;
+    }
+
+    .order-items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .order-items-table th, .order-items-table td {
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        text-align: left;
+    }
+
+    .order-items-table th {
+        background-color: #055160;
+        color: white;
+    }
+
+    .order-items-table td.item-image img {
+        max-width: 80px;
+        height: auto;
+    }
+
+    .order-status {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .status-ordered { color: #007bff; }
+    .status-shipped { color: #17a2b8; }
+    .status-delivered { color: #28a745; }
+    .status-cancelled { color: #dc3545; }
+    .status-returned { color: #ffc107; }
+
+    .message-box {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    .message-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .message-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .button {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        color: #fff;
+        text-decoration: none;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .back-button {
+        background-color: #055160;
+    }
+
+    .cancel-button {
+        background-color: #dc3545;
+    }
+
+    .return-button {
+        background-color: #ffc107;
+    }
+
+    .wallet-button {
+        background-color: #17a2b8;
+    }
+
+    .order-detail-content img {
+        border-radius: 5px;
+    }
+
+    .order-detail-content a.button:hover {
+        opacity: 0.8;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+
+<div class="container order-detail-container">
+    <div class="order-detail-content">
+        <div class="order-detail-actions">
+            {% if order.status == 'Delivered' %}
+                <a href="{% url 'generate_invoice' order_number=order.order_number %}" class="invoice-button">Download Invoice</a>
+            {% elif order.status == 'Cancelled' %}
+                <div class="cancellation-status accepted">
+                    <h4>Order Cancelled</h4>
+                    <p>Your order was cancelled. The refund has been processed to your wallet.</p>
+                </div>
+            {% elif order.payment_method == 'COD' and order.status == 'Ordered' %}
+                {% if order.payment_status == 'Completed' %}
+                    <div class="payment-success-container">
+                        <span class="payment-success">Payment Successful!</span>
+                        <a href="{% url 'generate_invoice' order_number=order.order_number %}" class="invoice-button">Download Invoice</a>
+                    </div>
+                {% elif order.payment_status == 'Pending' %}
+                    <span class="continue-payment-label">Continue Payment with</span>
+                    <a href="#" id="continue-payment-btn" class="continue-button">Razorpay</a>
+                    <a href="#" id="wallet-payment-btn" class="wallet-button">Wallet</a>
+                    <div class="payment-status-container">
+                        <span class="payment-status">{{ order.payment_status }}</span>
+                    </div>
+                {% endif %}
+               
+            {% elif order.payment_method == 'RazorPay' %}
+                {% if order.status == 'Pending' %}
+                    <span class="continue-payment-label">Continue Payment with</span>
+                    <a href="#" id="continue-payment-btn" class="continue-button">Razorpay</a>
+                    <a href="#" id="wallet-payment-btn" class="wallet-button">Wallet</a>
+                    <div class="payment-status-container">
+                        <span class="payment-status">{{ order.payment_status }}</span>
+                    </div>
+                {% elif order.status == 'Ordered' %}
+                    <div class="payment-success-container">
+                        <span class="payment-success">Payment Successful!</span>
+                        <a href="#" class="invoice-button">Download Invoice</a>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <h2>Order Details</h2>
+
+        <div class="order-section">
+            <h3>Order Information</h3>
+            <p>Order Number: {{ order.order_number }}</p>
+            <p>Date: {{ order.order_date|date:"Y-m-d H:i" }}</p>
+            <p class="order-status {% if order.status == 'Ordered' %}status-ordered{% elif order.status == 'Shipped' %}status-shipped{% elif order.status == 'Delivered' %}status-delivered{% elif order.status == 'Cancelled' %}status-cancelled{% elif order.status == 'Returned' %}status-returned{% endif %}">
+                Status: {{ order.status }}
+            </p>
+            <p>Total: ${{ order.grand_total|floatformat:2 }}</p>
+            <p>Payment Method: {{ order.payment_method }}</p>
+            <div class="payment-status-container">
+                <p>Payment Status:</p>
+                <p class="payment-status">{{ order.payment_status }}</p>
+            </div>
+        </div>
+
+        <div class="order-section">
+            <h3>Shipping Address</h3>
+            <p>Name: {{ order.address.first_name }} {{ order.address.last_name }}</p>
+            <p>Address: {{ order.address.street_address|default:"N/A" }}, {{ order.address.city|default:"N/A" }}, {{ order.address.state|default:"N/A" }}, {{ order.address.country|default:"N/A" }} - {{ order.address.postal_code|default:"N/A" }}</p>
+            <p>Phone: {{ order.address.phone_number|default:"N/A" }}</p>
+        </div>
+
+        <!-- Coupon Information -->
+        {% if order.coupon %}
+        <div class="order-section">
+            <h3>Applied Coupon</h3>
+            <p><strong>Coupon Code:</strong> {{ order.coupon.code }}</p>
+            <p><strong>Discount:</strong> {{ order.coupon.discount|floatformat:2 }}%</p>
+            <p><strong>Amount Saved:</strong> Rs{{ amount_saved|floatformat:2 }}</p>
+        </div>
+        {% endif %}
+
+        <div class="order-section">
+            <h3>Items</h3>
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td class="item-image">
+                            <img src="{{ item.product.product_image.url }}" alt="{{ item.product.title }}">
+                        </td>
+                        <td>{{ item.product.title }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.total_price|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No items found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Display messages -->
+        {% for message in messages %}
+        <div class="message-box {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+
+        <!-- Display return request button and form if the order is delivered -->
+        {% if order.status == 'Delivered' %}
+        <div class="order-section">
+            <a href="#" id="return-order-btn" class="return-button button">Request Return</a>
+            <form action="{% url 'request_return' order_number=order.order_number %}" method="post" id="return-order-form" class="hidden">
+                {% csrf_token %}
+                <label for="return_reason">Reason for Return:</label>
+                <textarea id="return_reason" name="return_reason" required></textarea>
+                <button type="submit" class="button">Submit Return Request</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Display cancel request button and form if the order is ordered -->
+        {% if order.status == 'Ordered' %}
+        <div class="order-section">
+            <a href="#" id="cancel-order-btn" class="cancel-button button">Request Cancellation</a>
+            <form action="{% url 'request_cancel_order' order_number=order.order_number %}" method="post" id="cancel-order-form" class="hidden">
+                {% csrf_token %}
+                <label for="cancel_reason">Reason for Cancellation:</label>
+                <textarea id="cancel_reason" name="cancel_reason" required></textarea>
+                <button type="submit" class="button">Submit Cancellation Request</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Back button -->
+        <a href="{% url 'my_orders' %}" class="button back-button">Back to Orders</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var cancelButton = document.getElementById('cancel-order-btn');
+        var cancelForm = document.getElementById('cancel-order-form');
+        var returnButton = document.getElementById('return-order-btn');
+        var returnForm = document.getElementById('return-order-form');
+
+        if (cancelButton && cancelForm) {
+            cancelButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                cancelForm.classList.toggle('hidden');
+            });
+        }
+
+        if (returnButton && returnForm) {
+            returnButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                returnForm.classList.toggle('hidden');
+            });
+        }
+    });
+</script>
+{% endblock %}

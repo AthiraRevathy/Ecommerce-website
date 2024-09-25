@@ -1,0 +1,23 @@
+{% extends "admin_base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row tm-content-row">
+        <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12 tm-block-col">
+            <div class="tm-bg-primary-dark tm-block tm-block-products">
+                <h2 class="tm-block-title">Block User</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {% if user.is_active %}
+                        <p>Are you sure you want to block {{ user.username }}?</p>
+                    {% else %}
+                        <p>Are you sure you want to unblock {{ user.username }}?</p>
+                    {% endif %}
+                    <button type="submit" class="btn btn-danger">Confirm</button>
+                    <a href="{% url 'usermanagement:list_users' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

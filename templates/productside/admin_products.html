@@ -1,0 +1,195 @@
+{% extends "admin_base.html" %}
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                {% if 'product_update' in message.tags %}
+                    <div class="alert alert-{{ message.tags }} mt-2">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="container mt-5">
+        <div class="row tm-content-row">
+            <!-- Product List -->
+            <div class="col-sm-12 col-md-12 col-lg-8 col-xl-8 tm-block-col mb-4">
+                <div class="tm-bg-primary-dark tm-block tm-block-products">
+                    <div class="tm-product-table-container">
+                        <h2 class="tm-block-title">Product List</h2>
+                        <table class="table table-hover tm-table-small tm-product-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">PRODUCT TITLE</th>
+                                    <th scope="col">ORIGINAL PRICE</th>
+                                    <th scope="col">OFFER</th>
+                                    <th scope="col">CATEGORY</th>
+                                    <th scope="col">BRAND</th>
+                                    <th scope="col">ACTIONS</th>
+                                    <th scope="col">AVAILABILITY</th>
+                                    <th scope="col">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                    <tr>
+                                        <td class="tm-product-name">{{ product.title }}</td>
+                                        <td>{{ product.original_price }}</td>
+                                        <td>{{ product.product_offer }}%</td> 
+                                        <td>{{ product.category }}</td>
+                                        <td>{{ product.brand.brand_name }}</td>
+                                        <td>
+                                            <a href="{% url 'edit_products' product.pk %}" class="btn btn-primary">Edit</a>
+                                        </td>
+                                        <td>
+                                            {% if product.availability_status == 'in_stock' %}
+                                                <span class="text-success">In Stock</span>
+                                            {% else %}
+                                                <span class="text-danger">Out of Stock</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a class="text-warning" href="{% url 'delete_products' product.pk %}">Change Availability</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{% url 'add_products' %}" class="btn btn-primary btn-block text-uppercase mb-3">Add new product</a>
+                </div>
+            </div>
+
+            <!-- Product Categories -->
+            <div class="col-sm-12 col-md-12 col-lg-4 col-xl-4 tm-block-col mb-4">
+                <div class="tm-bg-primary-dark tm-block tm-block-product-categories">
+                    <h2 class="tm-block-title">Product Categories</h2>
+                    <div class="tm-product-table-container">
+                        <table class="table tm-table-small tm-product-table text-white">
+                            <tbody>
+                                {% for category in categories %}
+                                    <tr>
+                                        <td>{{ category.category_name }}</td>
+                                        <td>
+                                            {% if category.is_active %}
+                                                <span class="text-success">Active</span>
+                                            {% else %}
+                                                <span class="text-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-container">
+                                                <a href="{% url 'edit_category' category.pk %}" class="btn btn-primary btn-sm">Edit</a>
+                                                <form method="post" action="{% url 'delete_category' category.pk %}" class="ml-2">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-warning btn-sm">
+                                                        {% if category.is_active %}
+                                                            Deactivate
+                                                        {% else %}
+                                                            Activate
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Category -->
+            <div class="col-12 mb-4">
+                <div class="card text-center">
+                    <div class="card-header">
+                        <h4 class="card-title">Add New Category</h4>
+                    </div>
+                    <div class="card-body text-white">
+                        <form method="post" action="{% url 'add_category' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                {{ category_form.as_p }}
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block text-uppercase mb-3">Add new category</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Brands -->
+            <div class="col-12">
+                <div class="card text-center">
+                    <div class="card-header">
+                        <h4 class="card-title">Product Brands</h4>
+                    </div>
+                    <div class="card-body text-white">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <table class="table tm-table-small tm-product-table text-white">
+                                    <tbody>
+                                        {% for brand in brands %}
+                                            <tr>
+                                                <td class="tm-product-name">{{ brand.brand_name }}</td>
+                                                <td>
+                                                    {% if brand.is_active %}
+                                                        <span class="text-success">Active</span>
+                                                    {% else %}
+                                                        <span class="text-danger">Inactive</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <form method="post" action="{% url 'toggle_brand_status' brand.pk %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-warning btn-sm">
+                                                            {% if brand.is_active %}
+                                                                Deactivate
+                                                            {% else %}
+                                                                Activate
+                                                            {% endif %}
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-4">
+                                <form method="post" class="text-center text-white">
+                                    {% csrf_token %}
+                                    {{ brand_form.as_p }}
+                                    <button type="submit" class="btn btn-primary btn-block text-uppercase mb-3">Add new brand</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .btn-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card {
+            background-color: #343a40;
+        }
+        
+        .card-header {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .card-body {
+            background-color: #495057;
+        }
+    </style>
+{% endblock %}

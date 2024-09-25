@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between mb-4">
+                <a href="{% url 'my_orders' %}" class="btn btn-secondary">View Your Orders</a>
+                <a href="{% url 'product_home' %}" class="btn btn-secondary">Back to Shop</a>
+            </div>
+            
+            <!-- Success Card -->
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">Order Confirmation</h4>
+                </div>
+                
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fa fa-check-circle fa-4x text-success"></i>
+                    </div>
+                    <h3 class="text-success">Your Order Was Successfully Placed!</h3>
+                    
+                    <p class="mb-4">Thank you for your purchase. Your order number is <strong>{{ order_number }}</strong>.</p>
+                    
+                    <p class="mb-4">An email confirmation has been sent to you with all the details. Please check your inbox and spam folder.</p>
+                    
+                    <p class="mb-4">If you need any assistance, feel free to <a href="" class="text-primary">contact our support team</a>.</p>
+                    
+                    <a href="{% url 'product_home' %}" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br><br><br><br><br><br><br><br>
+
+<style>
+    .card {
+        border: 1px solid #2F4F4F; /* Slate Gray border for the card */
+    }
+
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .table th, .table td {
+        border: 1px solid #2F4F4F; /* Slate Gray border for table cells */
+    }
+
+    .table thead th {
+        background-color: #009688; /* Teal color for header background */
+        color: #ffffff; /* White text color */
+    }
+
+    .table tbody tr:nth-of-type(odd) {
+        background-color: #f9f9f9; /* Slightly off-white for odd rows */
+    }
+
+    .table tbody tr:nth-of-type(even) {
+        background-color: #ffffff; /* White for even rows */
+    }
+
+    .btn-secondary {
+        background-color: #6c757d; /* Secondary button background */
+        border-color: #6c757d; /* Secondary button border */
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268; /* Darker shade on hover */
+        border-color: #545b62;
+    }
+
+    .btn-primary {
+        background-color: #2F4F4F; /* Primary button background */
+        border-color:#2F4F4F; /* Primary button border */
+    }
+
+    .btn-primary:hover {
+        background-color: #2F4F4F; /* Darker teal on hover */
+        border-color: #2F4F4F;
+    }
+</style>
+{% endblock %}

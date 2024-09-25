@@ -1,0 +1,97 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<style>
+    /* Inline CSS for form styling and alignment */
+    .custom-form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-form-container h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+    }
+
+    .custom-form-container .form-group {
+        margin-bottom: 15px;
+    }
+
+    .custom-form-container .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .custom-form-container .form-group .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    .custom-form-container .btn {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-size: 16px;
+        margin-right: 10px;
+        text-decoration: none;
+    }
+
+    .custom-form-container .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .custom-form-container .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .custom-form-container .btn-primary:hover,
+    .custom-form-container .btn-secondary:hover {
+        opacity: 0.8;
+    }
+</style>
+
+<div class="custom-form-container">
+    <h2>{% if form.instance.pk %}Edit Coupon{% else %}Add Coupon{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.code.label_tag }}
+            {{ form.code }}
+        </div>
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="form-group">
+            {{ form.discount.label_tag }}
+            {{ form.discount }}
+        </div>
+        <div class="form-group">
+            {{ form.valid_from.label_tag }}
+            {{ form.valid_from }}
+        </div>
+        <div class="form-group">
+            {{ form.valid_to.label_tag }}
+            {{ form.valid_to }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'coupon_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

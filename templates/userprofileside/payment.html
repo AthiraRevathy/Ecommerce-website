@@ -1,0 +1,66 @@
+{%extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    {% load static %}
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Complete Your Payment</h1>
+
+    <script>
+        var options = {
+            "key": "{{ 'rzp_test_EQkCb6St5A2pXy' }}", // Your Razorpay Key ID
+            "amount": "{{ amount }}", // Amount in paise (e.g., 50000 paise = 500 INR)
+            "currency": "{{ currency }}",
+            "order_id": "{{ razorpay_order_id }}", // Order ID created by Razorpay
+            "handler": function (response) {
+                // Handle success
+                fetch('/payment/payment-callback/', {
+                    method: 'POST',
+                    
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect_url;
+                       
+                        
+                    } else {
+                        alert('Payment verification failed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('There was an error processing your payment.');
+                });
+            },
+            "prefill": {
+                "name": "{{ user.get_full_name }}",
+                "email": "{{ user.email }}",
+                "contact": "{{ user.profile.phone_number }}" // Adjust according to your user model
+            },
+            "theme": {
+                "color": "#F37254"
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    </script>
+</body>
+{% endblock %}

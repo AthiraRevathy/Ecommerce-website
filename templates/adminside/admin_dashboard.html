@@ -1,0 +1,394 @@
+{% extends "admin_base.html" %}
+{%load static%}
+{%block content%}
+<style>
+    .tm-status-circle {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: middle; /* Aligns circle with text */
+    }
+    .pending {
+        background-color: white;
+    }
+    .cancel {
+        background-color: red;
+    }
+    .shipped {
+        background-color: yellow;
+    }
+    .delivered {
+        background-color: green;
+    }
+    .ordered {
+        background-color : orange;
+    }
+</style>
+
+
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <p class="text-white mt-5 mb-5">Welcome back, <b>Admin</b></p>
+                </div>
+            </div>
+            <!-- row -->
+             <style>
+            .tm-card {
+                color: white;
+                text-align: center;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+        
+            /* Backgrounds for each card */
+            .tm-card-sales {
+                background: linear-gradient(135deg, #72EDF2 10%, #5151E5 100%);
+            }
+        
+            .tm-card-orders {
+                background: linear-gradient(135deg, #F6D365 10%, #FDA085 100%);
+            }
+        
+            .tm-card-users {
+                background: linear-gradient(135deg, #ABDCFF 10%, #0396FF 100%);
+            }
+        
+            .tm-card-products {
+                background: linear-gradient(135deg, #FEB692 10%, #EA5455 100%);
+            }
+            
+            /* Icon styling */
+            .tm-card-icon {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+        
+            /* Heading styling */
+            .tm-card-title {
+                font-size: 1.5rem;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+        
+            /* Count styling */
+            .tm-card-count {
+                font-size: 2rem;
+                font-weight: bold;
+            }
+            .btn-gradient {
+                background: linear-gradient(135deg, #72EDF2 10%, #5151E5 100%);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                transition: background 0.3s ease;
+            }
+        
+            /* Active state with different gradient */
+            .btn-gradient.active, .btn-gradient:hover {
+                background: linear-gradient(135deg, #FDA085 10%, #F6D365 100%);
+            }
+        
+            /* Make the buttons inside the group look cohesive */
+            .btn-group .btn {
+                margin-right: 5px;
+            }
+        
+            /* Last button margin reset */
+            .btn-group .btn:last-child {
+                margin-right: 0;
+            }
+        </style>
+        
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <p class="text-white mt-5 mb-5">Welcome back, <b>Admin</b></p>
+                </div>
+            </div>
+            <div class="row">
+                <!-- Total Sales Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-sales">
+                        <i class="fas fa-dollar-sign tm-card-icon"></i>
+                        <h4 class="tm-card-title">Total Sales</h4>
+                        <p class="tm-card-count">${{ total_sales|floatformat:2 }}</p>
+                    </div>
+                </div>
+        
+                <!-- Total Orders Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-orders">
+                        <i class="fas fa-shopping-cart tm-card-icon"></i>
+                        <h4 class="tm-card-title">Total Orders</h4>
+                        <p class="tm-card-count">{{ total_orders }}</p>
+                    </div>
+                </div>
+        
+                <!-- Active Users Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-users">
+                        <i class="fas fa-users tm-card-icon"></i>
+                        <h4 class="tm-card-title">Active Users</h4>
+                        <p class="tm-card-count">{{ active_users }}</p>
+                    </div>
+                </div>
+        
+                <!-- Total Products Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-products">
+                        <i class="fas fa-box-open tm-card-icon"></i>
+                        <h4 class="tm-card-title">Total Products</h4>
+                        <p class="tm-card-count">{{ total_products }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- Delivered Orders Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-delivered">
+                        <i class="fas fa-check-circle tm-card-icon"></i>
+                        <h4 class="tm-card-title">Orders Delivered</h4>
+                        <p class="tm-card-count">{{ delivered_orders }}</p>
+                    </div>
+                </div>
+        
+                <!-- Shipped Orders Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-shipped">
+                        <i class="fas fa-truck tm-card-icon"></i>
+                        <h4 class="tm-card-title">Orders Shipped</h4>
+                        <p class="tm-card-count">{{ shipped_orders }}</p>
+                    </div>
+                </div>
+        
+                <!-- Cancelled Orders Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-cancelled">
+                        <i class="fas fa-times-circle tm-card-icon"></i>
+                        <h4 class="tm-card-title">Orders Cancelled</h4>
+                        <p class="tm-card-count">{{ cancelled_orders }}</p>
+                    </div>
+                </div>
+        
+                <!-- Returned Orders Card -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="tm-card tm-card-returned">
+                        <i class="fas fa-undo tm-card-icon"></i>
+                        <h4 class="tm-card-title">Orders Returned</h4>
+                        <p class="tm-card-count">{{ returned_orders }}</p>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Filter buttons -->
+            <div class="row">
+                <div class="col">
+                    <form method="get" action="{% url 'adminlog:admin_dashboard' %}">
+                        <div class="btn-group" role="group" aria-label="Filter Options">
+                            <button type="submit" name="filter" value="daily" class="btn btn-gradient {% if selected_filter == 'daily' %}active{% endif %}">Daily</button>
+                            <button type="submit" name="filter" value="monthly" class="btn btn-gradient {% if selected_filter == 'monthly' %}active{% endif %}">Monthly</button>
+                            <button type="submit" name="filter" value="yearly" class="btn btn-gradient {% if selected_filter == 'yearly' %}active{% endif %}">Yearly</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        
+            <div class="row ">
+                <!-- Sales Data Chart (Main Chart) -->
+                <div class="col-md-12 col-lg-10 mb-4 ">
+                    <div class="tm-bg-primary-dark tm-block text-center mb-3 ">
+                        <h2 class="tm-block-title mb-3 text-center">Sales Data</h2>
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Most Selling Products Chart (Subchart) -->
+                <div class="col-md-12 col-lg-6 mb-4">
+                    <div class="tm-bg-primary-dark tm-block text-center mb-3">
+                        <h2 class="tm-block-title mb-3 text-center">Most Selling Products</h2>
+                        <canvas id="productChart"></canvas>
+                    </div>
+                </div>
+            
+                <!-- Most Selling Brands Chart (Subchart) -->
+                <div class="col-md-12 col-lg-6 mb-4">
+                    <div class="tm-bg-primary-dark tm-block text-center mb-3">
+                        <h2 class="tm-block-title mb-3 text-center">Most Selling Brands</h2>
+                        <canvas id="brandChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Orders List -->
+            <div class="row tm-content-row">
+                <div class="col-12 tm-block-col">
+                    <div class="tm-bg-primary-dark tm-block tm-block-taller tm-block-scroll">
+                        <h2 class="tm-block-title">Orders List</h2>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ORDER NO.</th>
+                                    <th scope="col">CUSTOMER</th>
+                                    <th scope="col">PAYMENT METHOD</th>
+                                    <th scope="col">LOCATION</th>
+                                    <th scope="col">STATUS</th>
+                                    <th scope="col">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <th scope="row"><b>#{{ order.order_number }}</b></th>
+                                    <td><b>{{ order.user }}</b></td>
+                                    <td><b>{{ order.payment_method }}</b></td>
+                                    <td><b>{{ order.address }}</b></td>
+                                    <td>
+                                        <div class="tm-status-circle {{ order.status|lower }}"></div>{{ order.status }}
+                                    </td>
+                                    <td>{{ order.grand_total }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Sales Data Bar Chart (Main Chart)
+                var ctxSales = document.getElementById('barChart').getContext('2d');
+                var barChart = new Chart(ctxSales, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ chart_labels|safe }},
+                        datasets: [{
+                            label: 'Number of Orders',
+                            data: {{ chart_data|safe }},
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date',
+                                    color: '#ffffff' // Set x-axis title color to white
+                                },
+                                ticks: {
+                                    color: '#ffffff', // Set x-axis ticks color to white
+                                    autoSkip: false
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Number of Orders',
+                                    color: '#ffffff' // Set y-axis title color to white
+                                },
+                                ticks: {
+                                    color: '#ffffff', // Set y-axis ticks color to white
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    }
+                });
+        
+                // Most Selling Products Bar Chart (Subchart)
+                var ctxProducts = document.getElementById('productChart').getContext('2d');
+                var productChart = new Chart(ctxProducts, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ product_labels|safe }},
+                        datasets: [{
+                            label: 'Quantity Sold',
+                            data: {{ product_data|safe }},
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Product',
+                                    color: '#ffffff' // Set x-axis title color to white
+                                },
+                                ticks: {
+                                    color: '#ffffff', // Set x-axis ticks color to white
+                                    autoSkip: false
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Quantity Sold',
+                                    color: '#ffffff' // Set y-axis title color to white
+                                },
+                                ticks: {
+                                    color: '#ffffff', // Set y-axis ticks color to white
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    }
+                });
+        
+                // Most Selling Brands Bar Chart (Subchart)
+                var ctxBrands = document.getElementById('brandChart').getContext('2d');
+                var brandChart = new Chart(ctxBrands, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ brand_labels|safe }},
+                        datasets: [{
+                            label: 'Quantity Sold',
+                            data: {{ brand_data|safe }},
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Brand',
+                                    color: '#ffffff' // Set x-axis title color to white
+                                },
+                                ticks: {
+                                    color: '#ffffff', // Set x-axis ticks color to white
+                                    autoSkip: false
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Quantity Sold',
+                                    color: '#ffffff' // Set y-axis title color to white
+                                },
+                                ticks: {
+                                    color: '#ffffff', // Set y-axis ticks color to white
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+        {%endblock%}

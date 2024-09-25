@@ -1,0 +1,300 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Shop Homepage - SkyriseDecor</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
+    <!-- Bootstrap icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Core theme CSS (includes Bootstrap) -->
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+    <!-- ElevateZoom CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-elevatezoom/3.0.8/jquery.elevatezoom.min.css" rel="stylesheet" />
+    <style>
+        .card {
+            margin-top: 35px;
+            transition: transform 0.2s ease-in-out;
+            position: relative;
+            min-height: 350px; /* Ensures all cards have a minimum height */
+        }
+        .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Keeps elements spaced evenly */
+    height: 100%; /* Ensures the body takes up full card height */
+}
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+        .card-img-top {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .badge-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px; /* Space between badges */
+            z-index: 1;
+        }
+        .sidebar {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+            min-height: 1000px;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar .dropdown-toggle {
+            background-color: #799297;
+            border-color: #91c6d1;
+            color: white;
+            font-weight: bold;
+        }
+        .sidebar .dropdown-toggle:hover {
+            background-color: #047a8c;
+            color: white;
+        }
+        .sidebar .dropdown-menu {
+            border-radius: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f1f9f9;
+        }
+        .sidebar .dropdown-item {
+            padding: 10px 15px;
+            color: #055160;
+        }
+        .sidebar .dropdown-item:hover {
+            background-color: #d1ecf2;
+            color: #047a8c;
+        }
+        .product-colors {
+            margin: 20px 0;
+        }
+        .product-colors h5 {
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 16px;
+            color: #055160;
+            font-weight: bold;
+        }
+        .color-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 10px;
+        }
+        .color-circle {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 1px solid #8ba1a5;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .color-circle:hover {
+            transform: scale(1.2);
+            border-color: #047a8c;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+        }
+        footer {
+            background-color: #055160;
+            color: white;
+        }
+        footer a {
+            color: white;
+        }
+        footer a:hover {
+            color: #b3d4fc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        {% include 'navbar.html' %}
+    </header>
+    <!-- Section -->
+    <section>
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar Filters -->
+                <div class="col-md-3 sidebar">
+                    <!-- Sort Options -->
+                    <div class="mb-3">
+                        <h5 class="text-uppercase mb-3" style="color: #055160; font-weight: 700;">Sort By</h5>
+                        <form method="GET" action="{% url 'product_home' %}">
+                            <select class="form-select" name="sort" onchange="this.form.submit()">
+                                <option value="">Sort by</option>
+                                <option value="popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>Popularity</option>
+                                <option value="price_low_to_high" {% if request.GET.sort == 'price_low_to_high' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_high_to_low" {% if request.GET.sort == 'price_high_to_low' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="average_rating" {% if request.GET.sort == 'average_rating' %}selected{% endif %}>Average Ratings</option>
+                                <option value="new_arrivals" {% if request.GET.sort == 'new_arrivals' %}selected{% endif %}>New Arrivals</option>
+                                <option value="a_z" {% if request.GET.sort == 'a_z' %}selected{% endif %}>Name: A to Z</option>
+                                <option value="z_a" {% if request.GET.sort == 'z_a' %}selected{% endif %}>Name: Z to A</option>
+                            </select>
+                        </form>
+                    </div>
+                    <br><br>
+                    <!-- Brand Filter -->
+                    <div class="form-group">
+                        <label for="brand">Brand:</label>
+                        <form method="GET" action="{% url 'product_home' %}">
+                            <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="brand" value="unapplied" id="allBrands" {% if request.GET.brand == 'unapplied' %}checked{% endif %} onchange="this.form.submit()">
+                                <label class="form-check-label" for="allBrands">All Brands</label>
+                            </div>
+                            {% for brand in brands %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="brand" value="{{ brand.brand_name }}" id="brand{{ forloop.counter }}" {% if brand.brand_name in request.GET.brand_list %}checked{% endif %} onchange="this.form.submit()">
+                                    <label class="form-check-label" for="brand{{ forloop.counter }}">{{ brand.brand_name }}</label>
+                                </div>
+                            {% endfor %}
+                        </form>
+                    </div>
+                    <br><br>
+                    <!-- Size Filter -->
+                    <div class="dropdown mb-3">
+                        <button class="btn dropdown-toggle w-100" type="button" id="sizeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Filter by Size
+                        </button>
+                        <ul class="dropdown-menu w-100" aria-labelledby="sizeDropdown">
+                            <li><a class="dropdown-item" href="{% url 'product_home' %}?size=unapplied">All Sizes</a></li>
+                            {% for size in sizes %}
+                                <li><a class="dropdown-item" href="{% url 'product_home' %}?size={{ size.size_name }}">{{ size.size_name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <br><br>
+                    <!-- Color Filter -->
+                    <div class="product-colors">
+                        <h5>Filter by Color:</h5>
+                        <div class="color-list">
+                            {% for color in colors %}
+                                <a href="{% url 'product_home' %}?color={{ color.color_name }}" class="color-circle" style="background-color: {{ color.color_code }};"></a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <!-- Category Filter -->
+                    <div class="dropdown mb-3">
+                        <button class="btn dropdown-toggle w-100" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Filter by Categories
+                        </button>
+                        <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown">
+                            <li><a class="dropdown-item" href="{% url 'product_home' %}?category=unapplied">All Categories</a></li>
+                            {% for category in categories %}
+                                <li><a class="dropdown-item" href="{% url 'product_home' %}?category={{ category.id }}">{{ category.category_name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+              <!-- Main Content -->
+              <div class="col-md-9">
+                <!-- Products Display -->
+                <div class="row">
+                    {% for product in products %}
+                        <div class="col-md-4 mb-4"> 
+                            <div class="card text-center"> 
+                                <a href="{% url 'single_product' product.id %}">
+                                    <img class="card-img-top" src="{{ product.get_main_image_url }}" alt="{{ product.title }}" data-zoom="{{ product.get_main_image_url }}" />
+                                </a>
+                                <div class="badge-container">
+                                    {% if product.is_new %}
+                                        <span class="badge bg-info">New</span>
+                                    {% endif %}
+                                    {% if product.is_popular %}
+                                        <span class="badge bg-warning">Popular</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.title }}</h5>
+                                    {# Display the original price if there is a discount, strike it through #}
+                    {% if product.discounted_price < product.original_price %}
+                        <p class="card-text text-muted">
+                            <del>${{ product.original_price|floatformat:2 }}</del>
+                        </p>
+                        <p class="text-primary font-weight-bold">
+                            ${{ product.discounted_price|floatformat:2 }} <!-- Use discounted_price -->
+                        </p>
+                        <p class="text-success">
+                            {{ product.get_best_offer }}% Off
+                        </p>
+                    {% else %}
+                        <p class="text-primary font-weight-bold">
+                            ${{ product.original_price|floatformat:2 }}
+                        </p>
+                    {% endif %}
+                    
+                    <p class="card-text">
+                        {% if product.availability_status == 'in_stock' %}
+                            <span class="badge bg-success">In Stock</span>
+                        {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+                                   
+            </div>
+        </div>
+    </div>
+</section>
+    <!-- Footer -->
+    <footer class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase">About</h5>
+                    <p>
+                        SkyriseDecor is your destination for premium decor items. Explore our wide range of products to enhance your living spaces with style and elegance.
+                    </p>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase">Contact Us</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#" class="text-white">Email: support@skyrisedecor.com</a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-white">Phone: +123 456 7890</a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-white">Address: 1234 Decor Street, City, Country</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-12 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase">Follow Us</h5>
+                    <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    <!-- ElevateZoom JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+</body>
+</html>

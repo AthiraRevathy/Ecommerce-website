@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .container {
+        background-color: #f8f9fa; /* Light background for contrast */
+        border-radius: 10px; /* Rounded corners */
+        padding: 30px; /* Padding for spacing */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    }
+
+    .alert-info {
+        background-color: #17a2b8; /* Custom alert color */
+        color: white; /* Text color */
+        padding: 20px; /* Extra padding */
+        position: relative; /* For positioning the button */
+    }
+
+    .btn-copy {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        background-color: #ffffff; /* Button color */
+        border: none; /* No border */
+        color: #17a2b8; /* Text color */
+        cursor: pointer; /* Pointer on hover */
+        border-radius: 5px; /* Rounded corners */
+    }
+
+    .btn-copy:hover {
+        background-color: #e2e6ea; /* Slightly darker on hover */
+    }
+
+    h5 {
+        font-weight: bold; /* Bold heading */
+        color: #333; /* Dark color for text */
+    }
+
+    .list-group-item {
+        background-color: #ffffff; /* White background */
+        border: 1px solid #e1e1e1; /* Light border */
+    }
+</style>
+
+<div class="container text-center my-5">
+    <h2 class="mb-4">Your Referral Code</h2>
+    <p>Share this code with your friends to refer them to our service:</p>
+    
+    <div class="alert alert-info mb-4 referral-code" id="referral-code">
+        <strong>{{ referral.referral_code }}</strong>  <!-- Display the referral code -->
+        <button class="btn btn-copy" onclick="copyReferralCode()">Copy</button>  <!-- Copy button -->
+    </div>
+
+    <!-- Referral Instructions -->
+    <div class="mb-4">
+        <h5>How It Works:</h5>
+        <ol class="text-left mx-auto" style="max-width: 400px;">
+            <li>Share your referral code with friends.</li>
+            <li>When they sign up, you earn rewards!</li>
+        </ol>
+    </div>
+
+    <!-- List of Referred Friends -->
+    <h4 class="mt-5">Friends Who Signed Up Using Your Code:</h4>
+    {% if friends %}
+        <ul class="list-group mx-auto" style="max-width: 600px;">
+            {% for friend in friends %}
+                <li class="list-group-item text-center">{{ friend.username }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No friends have signed up yet using your referral code.</p>
+    {% endif %}
+</div>
+
+<script>
+function copyReferralCode() {
+    const codeElement = document.getElementById("referral-code");
+    const codeText = codeElement.innerText;
+
+    navigator.clipboard.writeText(codeText).then(() => {
+        alert("Referral code copied to clipboard!");
+    }).catch(err => {
+        console.error("Failed to copy: ", err);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header .left,
+        .header .right {
+            width: 48%;
+        }
+        .header .right {
+            text-align: right;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .table th {
+            background-color: #f4f4f4;
+        }
+        .total {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .coupon {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="left">
+                <h2>Invoice</h2>
+                <p>Order ID: {{ order.order_number }}</p>
+                <p>Order Date: {{ order.created_at|date:"Y-m-d" }}</p>
+                <p>Payment Method: {{ order.payment_method }}</p>
+            </div>
+            <div class="right">
+                <p>Invoiced To:</p>
+                <p>{{ order.address.first_name }} {{ order.address.last_name }}</p>
+                <p>{{ order.address.street_address }}, {{ order.address.city }}, {{ order.address.state }}, {{ order.address.country }}, {{ order.address.postal_code }}</p>
+                <p>{{ order.address.phone_number }}</p>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Original Price</th>
+                    <th>Discount</th>
+                   
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.title }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.product.original_price|floatformat:2 }}</td> 
+                    <td>{{ item.product.get_best_offer }}%</td>
+                  
+                    <td>${{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                
+            </tbody>
+        </table>
+
+        
+
+        <div class="total">
+            <p>Subtotal: ${{ order.total|floatformat:2 }}</p>
+            <p>Delivery Charge: ${{ order.shipping_fee|floatformat:2 }}</p>
+            <p>
+                Coupon discount:
+                {% if order.coupon %}
+                    -{{ order.coupon.discount|floatformat:2 }}
+                {% else %}
+                    None
+                {% endif %}
+            </p>
+            
+            <p><strong>Grand Total: ${{ order.grand_total|floatformat:2 }}</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for shopping with us!</p>
+        </div>
+    </div>
+</body>
+</html>

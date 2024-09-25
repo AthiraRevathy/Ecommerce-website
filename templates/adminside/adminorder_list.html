@@ -1,0 +1,168 @@
+{% extends 'admin_base.html'%}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Order List - Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'admin/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/templatemo-style.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/custom.css' %}"> <!-- Custom styles for this page -->
+    <style>
+        .status-ordered {
+            color: #007bff; /* Blue */
+            font-weight: bold;
+        }
+
+        .status-shipped {
+            color: #28a745; /* Green */
+            font-weight: bold;
+        }
+
+        .status-delivered {
+            color: #ff5722; /* Orange */
+            font-weight: bold;
+        }
+
+        .status-cancelled {
+            color: #dc3545; /* Red */
+            font-weight: bold;
+        }
+    </style>
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="my-4">
+            <a href="{% url 'adminlog:admin_dashboard' %}" class="btn btn-secondary btn-lg">Back to Dashboard</a>
+        </div>
+        <h1 class="my-4">Order List</h1>
+        
+        <!-- Search and Filter Form -->
+        <form method="get" class="form-inline mb-4">
+            <div class="form-group mx-sm-3 mb-2">
+                <label for="search" class="sr-only">Search</label>
+                <input type="text" class="form-control" id="search" name="q" placeholder="Search by Customer" value="{{ request.GET.q }}">
+            </div>
+            <div class="form-group mx-sm-3 mb-2">
+                <label for="status" class="sr-only">Status</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="Ordered" {% if request.GET.status == 'Ordered' %}selected{% endif %}>Ordered</option>
+                    <option value="Shipped" {% if request.GET.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                    <option value="Delivered" {% if request.GET.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                    <option value="Cancelled" {% if request.GET.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">Search</button>
+        </form>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order Number</th>
+                    <th>Customer</th>
+                    <th>Payment Method</th>
+                    <th>Delivery Address</th>
+                    <th>Delivery Charge</th>
+                    <th>Total</th>
+                    <th>Order Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_number }}</td>
+                    <td>{{ order.user }}</td>
+                    <td>{{ order.payment_method }}</td>
+                    <td>{{ order.address }}</td>
+                    <td>${{ order.shipping_fee }}</td>
+                    <td>${{ order.grand_total }}</td>
+                    <td>
+                        {% if order.status == 'Ordered' %}
+                            <span class="status-ordered">{{ order.status }}</span>
+                        {% elif order.status == 'Shipped' %}
+                            <span class="status-shipped">{{ order.status }}</span>
+                        {% elif order.status == 'Delivered' %}
+                            <span class="status-delivered">{{ order.status }}</span>
+                        {% elif order.status == 'Cancelled' %}
+                            <span class="status-cancelled">{{ order.status }}</span>
+                        {% else %}
+                            {{ order.status }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm update-status-btn" 
+                                data-order-number="{{ order.order_number }}" 
+                                data-current-status="{{ order.status }}"
+                                {% if order.status == 'Cancelled' %}disabled{% endif %}>
+                            Update Status
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Status Update Modal -->
+        <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="statusModalLabel">Update Order Status</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="statusForm" method="post" action="{% url 'adminlog:update_order_status' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="order_number" id="order_number">
+                            <div class="form-group">
+                                <label for="status">Select New Status</label>
+                                <select class="form-control" name="status" id="status">
+                                    <option value="Ordered">Ordered</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.update-status-btn').on('click', function() {
+                var orderNumber = $(this).data('order-number');
+                var currentStatus = $(this).data('current-status');
+                $('#order_number').val(orderNumber);
+                $('#status').val(currentStatus);
+                $('#statusModal').modal('show');
+            });
+
+            // Optional: Disable button if the status is 'Cancelled'
+            $('#statusForm').on('submit', function() {
+                var newStatus = $('#status').val();
+                if (newStatus === 'Cancelled') {
+                    $('.update-status-btn').prop('disabled', true);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+{%endblock%}
