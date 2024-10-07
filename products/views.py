@@ -14,7 +14,8 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from .models import Product, Brand, Category, Color, Size
 from .forms import BrandForm
-
+from django.db.models import Q
+from django.http import JsonResponse
 
 
 
@@ -26,9 +27,22 @@ def product_home(request):
     color_name = request.GET.get('color', 'unapplied')
     size_name = request.GET.get('size', 'unapplied')
     sort_by = request.GET.get('sort', 'popularity')  # Default sort by popularity
+    search_query = request.GET.get('q', '')  # Get the search query
 
     # Initialize product queryset
     products = Product.objects.all()
+
+    # Apply search filter
+    if search_query:
+         products = products.filter(
+            Q(title__icontains=search_query) |
+            Q(brand__brand_name__icontains=search_query) |  # Assuming 'brand_name' is the field in Brand model
+            Q(category__category_name__icontains=search_query) |  # Assuming 'category_name' is the field in Category model
+            Q(colors__color_name__icontains=search_query) |  # Assuming 'color_name' is the field in Color model
+            Q(sizes__size_name__icontains=search_query)  # Assuming 'size_name' is the field in Size model
+        ).distinct()  # Use distinct() to avoid duplicates
+
+         
 
     # Apply filters
     if category_id != 'unapplied':
@@ -50,9 +64,9 @@ def product_home(request):
     elif sort_by == 'new_arrivals':
         products = products.order_by('-created_at')
     elif sort_by == 'a_z':
-        products = products.order_by('title')
+        products = products.order_by('-title')  # Use 'product_name' instead of 'title'
     elif sort_by == 'z_a':
-        products = products.order_by('-title')
+        products = products.order_by('-title')  # Use 'product_name' instead of 'title'
 
     # Pagination
     paginator = Paginator(products, 12)  # Show 12 products per page
@@ -82,9 +96,13 @@ def product_home(request):
         'colors': colors,
         'sizes': sizes,
         'brand_form': brand_form,
+        'search_query': search_query,  # Pass search query to template
     }
 
     return render(request, 'product_home.html', context)
+
+
+
 
 
 def admin_products(request):
@@ -140,10 +158,7 @@ def admin_products(request):
     return render(request, 'productside/admin_products.html', context)
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.forms import inlineformset_factory
-from .models import Product, ProductImage
-from .forms import ProductForm, ProductImageForm
+
 
 ProductImageFormset = inlineformset_factory(
     Product, ProductImage, form=ProductImageForm, extra=3, can_delete=True
@@ -274,8 +289,7 @@ def add_category(request):
     return render(request, 'productside/add_category.html', {'form': category_form})
 
 
-from django.shortcuts import render, get_object_or_404
-from .models import Product, ProductImage, Review, Color
+
 @login_required
 def single_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -341,10 +355,6 @@ def toggle_brand_status(request, pk):
 
 
 
-
-# views.py
-from django.http import JsonResponse
-from .models import Product  # Import your Product model or appropriate model
 
 def get_variant_details(request):
     color_code = request.GET.get('color_code')

@@ -56,31 +56,6 @@
     width: 100%;
     margin-top: 1rem;
 }
-
-/* Pagination controls */
-.pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 1rem;
-}
-
-.page-item {
-    margin: 0 0.5rem;
-}
-
-.page-item a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.page-item.active a {
-    font-weight: bold;
-}
-
-.page-item.disabled a {
-    color: #6c757d;
-    cursor: not-allowed;
-}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -132,6 +107,7 @@
     <div class="mb-4">
         <a href="{% url 'sales_report_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-secondary">Download PDF</a>
         <a href="{% url 'sales_report_excel' %}?{{ request.GET.urlencode }}" class="btn btn-secondary">Download Excel</a>
+        
     </div>
 
     <!-- Overall Sales Details -->
@@ -146,107 +122,126 @@
         <p><strong>Return Request Count:</strong> {{ return_request_count }}</p>
         <p><strong>In Progress Count:</strong> {{ in_progress_count }}</p>
     </div>
-
-    <!-- Sales Report Table -->
-    <div class="table-container">
-        <div class="scrollable-table">
-            <div class="table-heading">SALES REPORT</div>
-            <table class="table table-bordered text-center">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Username</th>
-                        <th>Order Item ID</th>
-                        <th>Order Date</th>
-                        <th>Product Title</th>
-                        <th>Original Price</th>
-                        <th>Sold Price</th>
-                        <th>Quantity</th>
-                        <th>Product Discount</th>
-                        <th>Total Amount</th>
-                        <th>Order Status</th>
-                        <th>Payment Method</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                        {% for item in order.items.all %}
-                            <tr>
-                                <td>{{ order.id }}</td>
-                                <td>{{ order.user.username }}</td>
-                                <td>{{ item.id }}</td>
-                                <td>{{ order.created_at }}</td>
-                                <td>{{ item.product.title }}</td>
-                                <td>{{ item.product.original_price }}</td>
-                                <td>{{ item.total_price }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>{{ item.product.get_best_offer }}%</td>
-                                <td>{{ order.grand_total }}</td>
-                                <td>{{ order.status }}</td>
-                                <td>{{ order.payment_method }}</td>
-                            </tr>
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <!-- Pagination Controls -->
-            <div class="pagination">
-                <span class="page-item {% if not orders.has_previous %}disabled{% endif %}">
-                    <a href="?{% if orders.has_previous %}page={{ orders.previous_page_number }}&{% endif %}{{ request.GET.urlencode }}">Previous</a>
-                </span>
-                {% for page_num in orders.paginator.page_range %}
-                    <span class="page-item {% if orders.number == page_num %}active{% endif %}">
-                        <a href="?page={{ page_num }}&{{ request.GET.urlencode }}">{{ page_num }}</a>
-                    </span>
-                {% endfor %}
-                <span class="page-item {% if not orders.has_next %}disabled{% endif %}">
-                    <a href="?{% if orders.has_next %}page={{ orders.next_page_number }}&{% endif %}{{ request.GET.urlencode }}">Next</a>
-                </span>
+    
+    <div class="container mt-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center">
+                <h3 class="mb-0">Sales Report</h3>
             </div>
-        </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped text-center">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Username</th>
+                                <th>Order Item ID</th>
+                                <th>Order Date</th>
+                                <th>Product Title</th>
+                                <th>Original Price</th>
+                                <th>Sold Price</th>
+                                <th>Quantity</th>
+                                <th>Product Discount</th>
+                                <th>Total Amount</th>
+                                <th>Order Status</th>
+                                <th>Payment Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if orders %}
+                                {% for order in orders %}
+                                    {% for item in order.items.all %}
+                                        <tr>
+                                            <td>{{ order.id }}</td>
+                                            <td>{{ order.user.username }}</td>
+                                            <td>{{ item.id }}</td>
+                                            <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                                            <td>{{ item.product.title }}</td>
+                                            <td>{{ item.product.original_price|floatformat:2 }}</td>
+                                            <td>{{ item.total_price|floatformat:2 }}</td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>{{ item.product.get_best_offer }}%</td>
+                                            <td>{{ order.grand_total|floatformat:2 }}</td>
+                                            <td>{{ order.status }}</td>
+                                            <td>{{ order.payment_method }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="12" class="text-center">No orders available.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+
+                    <!-- Debugging: Show search and filter status -->
+                    <p>Showing {{ orders|length }} orders.</p>
+                    <p>Current filter: {{ filter_option }}</p>
+                    <p>Search query: {{ search_query }}</p>
+
+<!-- Pagination Controls -->
+<div class="pagination">
+    <span class="text-muted">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+    <div>
+        {% if orders.has_previous %}
+            <a href="?page=1" class="btn btn-secondary">First</a>
+            <a href="?page={{ orders.previous_page_number }}" class="btn btn-secondary">Previous</a>
+        {% endif %}
+
+        <span class="current-page">{{ orders.number }}</span>
+
+        {% if orders.has_next %}
+            <a href="?page={{ orders.next_page_number }}" class="btn btn-secondary">Next</a>
+            <a href="?page={{ orders.paginator.num_pages }}" class="btn btn-secondary">Last</a>
+        {% endif %}
     </div>
 </div>
 
-<script>
-    document.getElementById('filter').addEventListener('change', function() {
-        var customDates = document.getElementById('custom-dates');
-        if (this.value === 'custom') {
-            customDates.style.display = 'block';
-        } else {
-            customDates.style.display = 'none';
-        }
-    });
+                </div>
+            </div>
+        </div>
+    </div>
 
-    var ctx = document.getElementById('salesChart').getContext('2d');
-    var salesChart = new Chart(ctx, {
-        type: 'bar', 
-        data: {
-            labels: {{ chart_labels|safe }},
-            datasets: [{
-                label: 'Sales',
-                data: {{ chart_data|safe }},
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Products'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantity'
+    <script>
+        document.getElementById('filter').addEventListener('change', function() {
+            var customDates = document.getElementById('custom-dates');
+            if (this.value === 'custom') {
+                customDates.style.display = 'block';
+            } else {
+                customDates.style.display = 'none';
+            }
+        });
+
+        var ctx = document.getElementById('salesChart').getContext('2d');
+        var salesChart = new Chart(ctx, {
+            type: 'bar', 
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Sales',
+                    data: {{ chart_data|safe }},
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Products'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Quantity'
+                        }
                     }
                 }
             }
-        }
-    });
-</script>
+        });
+    </script>
 {% endblock %}

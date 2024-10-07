@@ -13,6 +13,10 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .models import Wallet, WalletTransaction,Referral
 from decimal import Decimal
+from .models import Referral
+
+
+
 
 @login_required
 def my_wallet(request):
@@ -132,7 +136,7 @@ def admin_confirm_return(request, return_request_id):
     else:
         messages.error(request, 'Return request cannot be confirmed.')
 
-    return redirect('order_detail', order_number=order.order_number)
+    return redirect(admin_return_requests)
 
 
 def admin_reject_return(request, return_request_id):
@@ -173,10 +177,6 @@ def admin_return_requests(request):
         'search_query': search_query
     })
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from .models import Order, CancellationRequest
 
 @login_required
 def request_cancel_order(request, order_number):
@@ -208,7 +208,6 @@ def review_cancellation_requests(request):
     requests = CancellationRequest.objects.filter(status='Pending')
     return render(request, 'adminside/review_cancellation_requests.html', {'requests': requests})
 
-
 @user_passes_test(lambda u: u.is_superuser)
 def process_cancellation_request(request, request_id, action):
     cancellation_request = get_object_or_404(CancellationRequest, id=request_id)
@@ -217,7 +216,7 @@ def process_cancellation_request(request, request_id, action):
     if action == 'approve':
         # Update order and cancellation request statuses
         order.status = 'Cancelled'
-        order.payment_status = 'Refunded'
+        order.payment_status = 'Refunded' if order.payment_status != 'COD' else 'Not Applicable'
         order.save()
         cancellation_request.status = 'Confirmed'
         
@@ -227,26 +226,31 @@ def process_cancellation_request(request, request_id, action):
             product.quantity += item.quantity
             product.save()
         
-        # Process the wallet refund
-        user = order.user
-        wallet, created = Wallet.objects.get_or_create(user=user)
+        # Process the wallet refund if the payment method is not COD
+        if order.payment_method != 'COD':
+            user = order.user
+            wallet, created = Wallet.objects.get_or_create(user=user)
 
-        # Ensure wallet balance is a Decimal
-        wallet_balance = wallet.balance if wallet else Decimal('0.00')
-        refund_amount = Decimal(order.grand_total)
+            # Ensure wallet balance is a Decimal
+            wallet_balance = wallet.balance if wallet else Decimal('0.00')
+            refund_amount = Decimal(order.grand_total)
 
-        wallet.balance = wallet_balance + refund_amount
-        wallet.save()
+            wallet.balance = wallet_balance + refund_amount
+            wallet.save()
 
-        # Log the wallet transaction
-        WalletTransaction.objects.create(
-            user=user,
-            transaction_type='Credit',
-            amount=refund_amount,
-            description=f'Refund for cancelled order {order.order_number}'
-        )
-        
+            # Log the wallet transaction
+            WalletTransaction.objects.create(
+                user=user,
+                transaction_type='Credit',
+                amount=refund_amount,
+                description=f'Refund for cancelled order {order.order_number}'
+            )
+        else:
+            # Log that no refund is needed for COD payments
+            messages.info(request, "Cancellation request approved. No refund is necessary as the payment was made via Cash on Delivery.")
+
         messages.success(request, "Cancellation request approved and order cancelled.")
+    
     elif action == 'reject':
         cancellation_request.status = 'Rejected'
         messages.success(request, "Cancellation request rejected.")
@@ -264,7 +268,8 @@ def process_cancellation_request(request, request_id, action):
     }
 
     # Redirect to the order detail page
-    return redirect('order_detail', order_number=order.order_number)
+    return redirect('review_cancellation_requests')
+
 
 
 @login_required
@@ -298,9 +303,6 @@ def wallet_payment(request, order_number):
     messages.success(request, 'Payment completed successfully with wallet.')
     return JsonResponse({'status': 'success', 'message': 'Payment successful.'})
 
-
-from django.shortcuts import render, redirect
-from .models import Referral
 
 def referral_page(request):
     # Check if the user is logged in

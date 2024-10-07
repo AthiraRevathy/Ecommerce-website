@@ -10,33 +10,7 @@
         <p class="wallet-balance-amount">${{ wallet_balance }}</p>
     </div>
 
-    <!-- Filter Form Section -->
-    <div class="filter-form mb-4">
-        <h3>Filter Transactions</h3>
-        <form method="get" action="">
-            <div class="row">
-                <div class="col-md-3 mb-2">
-                    <input type="text" name="search" placeholder="Search transactions" class="form-control" value="{{ request.GET.search }}">
-                </div>
-                <div class="col-md-3 mb-2">
-                    <select name="transaction_type" class="form-control">
-                        <option value="">All Types</option>
-                        <option value="credit" {% if request.GET.transaction_type == 'credit' %}selected{% endif %}>Credit</option>
-                        <option value="debit" {% if request.GET.transaction_type == 'debit' %}selected{% endif %}>Debit</option>
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="{{ request.GET.start_date }}">
-                </div>
-                <div class="col-md-2 mb-2">
-                    <input type="date" name="end_date" class="form-control" placeholder="End Date" value="{{ request.GET.end_date }}">
-                </div>
-                <div class="col-md-2 mb-2">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
-                </div>
-            </div>
-        </form>
-    </div>
+    
 
     <!-- Transaction History Section -->
     <div class="transaction-history">

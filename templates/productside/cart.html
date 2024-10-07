@@ -1,141 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart Summary</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+{% extends 'base.html' %}
 
-    <style>
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: auto;
-            padding: 0 15px;
-        }
+{% load static %}
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Cart Summary</h2>
 
-        .table {
-            width: 100%;
-            max-width: 1000px;
-            margin: 40px auto;
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        .table th {
-            background-color: #2F4F4F;
-            color: #fff;
-        }
-        .table img {
-            max-width: 80px;
-        }
-        .navbar, .footer {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
-            text-align: center;
-        }
-        .navbar a, .footer a {
-            color: #fff;
-            text-decoration: none;
-            padding: 0 15px;
-        }
-        .navbar a:hover, .footer a:hover {
-            text-decoration: underline;
-        }
-        .footer {
-            background-color: #f8f9fa;
-            color: #333;
-            padding: 20px 0;
-            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-        }
-        .footer p {
-            margin: 0;
-        }
-        .footer h4 {
-            margin-bottom: 15px;
-        }
-        .btn-checkout,
-        .btn-continue-shopping {
-            background-color: #055160;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            text-decoration: none;
-        }
-
-        .btn-checkout:hover,
-        .btn-continue-shopping:hover {
-            background-color: #044d53;
-        }
-
-        .navbar-nav.ml-auto {
-            margin-left: auto;
-        }
-
-        .navbar-nav .nav-item {
-            margin-left: 10px;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <header class="header">
-        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #ffffff;">
-            <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="{% url 'home' %}" style="font-weight: bold; color: #6f4f28;">SkyriseDecor</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item"><a class="nav-link" style="color: #055160;" aria-current="page" href="{% url 'home' %}">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'search' %}">Search</a></li>
-                        <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'about' %}">About</a></li>
-                        <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'adminlog:admin_login' %}">Admin</a></li>
-                        <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'logout' %}">Logout</a></li>
-                    </ul>
-                    <ul class="navbar-nav ml-auto">
-                        {% if user.is_authenticated %}
-                            <li class="nav-item">
-                                <a href="{% url 'profile_main' %}" class="btn btn-outline-dark d-flex align-items-center me-3">
-                                    <img src="{% static 'icons/user.png' %}" alt="User Icon" style="width: 24px; height: 24px;">
-                                    <span class="ms-2" style="font-size: 14px; color: #055160;">{{ user.username }}</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{% url 'cart_summary' %}" class="btn btn-outline-dark d-flex align-items-center custom-margin">
-                                    <i class="bi-cart-fill me-1"></i> Cart
-                                    <span class="badge bg-dark text-white ms-1 rounded-pill" id="cart_quantity">{{ cart_count }}</span>
-                                </a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'login' %}">Login</a></li>
-                            <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'register' %}">Register</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Main Content -->
-    <main class="container">
-        {% if cart_items %}
+    {% if cart_items %}
         {% if out_of_stock_products %}
-        <div class="alert alert-warning">
-            Some products in your cart are out of stock and cannot be purchased. Please remove them to proceed to checkout.
-        </div>
-    {% endif %}
+            <div class="alert alert-warning">
+                Some products in your cart are out of stock and cannot be purchased. Please remove them to proceed to checkout.
+            </div>
+        {% endif %}
+        <table class="table">
         <table class="table">
             <thead>
                 <tr>
@@ -222,31 +98,88 @@
         <p>Your cart is empty.</p>
         {% endif %}
     </main>
-
-    <footer class="py-5" style="background-color: #e3e3e3; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-6 mb-5 mb-lg-0 d-flex align-items-center">
-                    <div>
-                        <h4 class="text-uppercase mb-3" style="color: #055160; font-weight: 700;">About Us</h4>
-                        <p class="lead mb-0" style="color: #333333; line-height: 1.6;">SkyriseDecor offers a wide range of high-quality home décor and furniture pieces, catering to modern tastes and preferences.</p>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="d-flex flex-column">
-                        <h4 class="text-uppercase mb-3" style="color: #055160; font-weight: 700;">Quick Links</h4>
-                        <a class="link-primary" href="{% url 'product_home' %}" style="text-decoration: none; color: #6f4f28;">Product Home</a>
-                        <a class="link-primary" href="{% url 'about' %}" style="text-decoration: none; color: #6f4f28;">About</a>
-                        <a class="link-primary" href="{% url 'search' %}" style="text-decoration: none; color: #6f4f28;">Search</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+      
 
 <!-- Add this at the end of your cart_summary.html file -->
 <!-- JavaScript for AJAX -->
+<style>
+    .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: auto;
+        padding: 0 15px;
+    }
 
+    .table {
+        width: 100%;
+        max-width: 1000px;
+        margin: 40px auto;
+        border-collapse: collapse;
+    }
+    .table th, .table td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    .table th {
+        background-color: #2F4F4F;
+        color: #fff;
+    }
+    .table img {
+        max-width: 80px;
+    }
+    .navbar, .footer {
+        background-color: #333;
+        color: #fff;
+        padding: 10px 0;
+        text-align: center;
+    }
+    .navbar a, .footer a {
+        color: #fff;
+        text-decoration: none;
+        padding: 0 15px;
+    }
+    .navbar a:hover, .footer a:hover {
+        text-decoration: underline;
+    }
+    .footer {
+        background-color: #f8f9fa;
+        color: #333;
+        padding: 20px 0;
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    }
+    .footer p {
+        margin: 0;
+    }
+    .footer h4 {
+        margin-bottom: 15px;
+    }
+    .btn-checkout,
+    .btn-continue-shopping {
+        background-color: #055160;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-checkout:hover,
+    .btn-continue-shopping:hover {
+        background-color: #044d53;
+    }
+
+    .navbar-nav.ml-auto {
+        margin-left: auto;
+    }
+
+    .navbar-nav .nav-item {
+        margin-left: 10px;
+    }
+</style>
 
 <script>
     $(document).ready(function() {
@@ -287,8 +220,7 @@
         });
     });
 </script>
-</body>
-</html>
-
+<br><br><br><br><br><br><br><br><br>
+{% endblock %}
     
     

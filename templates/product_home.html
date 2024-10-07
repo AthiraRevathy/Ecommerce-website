@@ -133,6 +133,17 @@
             <div class="row">
                 <!-- Sidebar Filters -->
                 <div class="col-md-3 sidebar">
+                    <!-- Search Bar -->
+                    <div class="mb-3">
+                        <h5 class="text-uppercase mb-3" style="color: #055160; font-weight: 700;">Search</h5>
+                        <form method="GET" action="{% url 'product_home' %}">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="q" placeholder="Search products" value="{{ request.GET.q }}">
+                                <button class="btn btn-outline-secondary" type="submit">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                    <br><br>
                     <!-- Sort Options -->
                     <div class="mb-3">
                         <h5 class="text-uppercase mb-3" style="color: #055160; font-weight: 700;">Sort By</h5>
@@ -248,6 +259,12 @@
                         {% endif %}
                     </p>
                 </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning text-center" role="alert">
+                No products available at the moment.
             </div>
         </div>
     {% endfor %}

@@ -12,36 +12,42 @@ from reportlab.lib.styles import getSampleStyleSheet
 from django.utils.timezone import make_naive
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
-from django.core.paginator import Paginator
 from django.db.models import Q
 from decimal import Decimal
-from product_cart.models import Order 
+from product_cart.models import Order
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger 
+
+
+
+
+
 
 def sale_report_view(request):
     filter_option = request.GET.get('filter', 'all')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    search_query = request.GET.get('search', '')
+    search_query = request.GET.get('search', '').strip()
 
     # Base query for orders
     orders_query = Order.objects.all()
 
     # Date filters
+    today = timezone.now().date()
+    
     if filter_option == 'today':
-        today = timezone.now().date()
         orders_query = orders_query.filter(created_at__date=today)
     elif filter_option == 'weekly':
-        start_of_week = timezone.now().date() - timedelta(days=timezone.now().weekday())
+        start_of_week = today - timedelta(days=today.weekday())
         orders_query = orders_query.filter(created_at__date__gte=start_of_week)
-        print("Weekly filter applied:", orders_query.count())
     elif filter_option == 'monthly':
-        start_of_month = timezone.now().date().replace(day=1)
+        start_of_month = today.replace(day=1)
         orders_query = orders_query.filter(created_at__date__gte=start_of_month)
-        print("Monthly filter applied:", orders_query.count())
     elif filter_option == 'yearly':
-        start_of_year = timezone.now().date().replace(month=1, day=1)
+        start_of_year = today.replace(month=1, day=1)
         orders_query = orders_query.filter(created_at__date__gte=start_of_year)
-        print("Yearly filter applied:", orders_query.count())
+
+    # Debug: Print the count of orders after applying date filters
+    print(f"After filter '{filter_option}': {orders_query.count()} orders found")
 
     # Search functionality
     if search_query:
@@ -57,17 +63,20 @@ def sale_report_view(request):
             Q(status__icontains=search_query) |
             Q(payment_method__icontains=search_query)
         ).distinct()
-    
-    # Calculate overall statistics before pagination
+
+    # Debug: Print the count of orders after applying search query
+    print(f"After search '{search_query}': {orders_query.count()} orders found")
+
+    # Overall statistics
     overall_sales_count = orders_query.count()
     overall_success_amount = orders_query.filter(status='Delivered').aggregate(Sum('grand_total'))['grand_total__sum'] or Decimal('0.00')
 
     # Calculate overall discount based on offer_price
-    discount_amount = Decimal('0.00')  # Initialize as Decimal
+    discount_amount = Decimal('0.00')
     for order in orders_query:
         for item in order.items.all():
-            original_price = item.product.original_price or Decimal('0.00')  # Ensure no None
-            offer_price = item.product.offer_price or Decimal('0.00')  # Ensure no None
+            original_price = item.product.original_price or Decimal('0.00')
+            offer_price = item.product.offer_price or Decimal('0.00')
             discount_amount += (original_price - offer_price) * item.quantity
 
     overall_discount = discount_amount
@@ -83,19 +92,22 @@ def sale_report_view(request):
     sales_data = orders_query.values('created_at__date').annotate(
         total_sales=Sum('grand_total')
     ).order_by('created_at__date')
-    
+
     # Generate chart data based on sales_data
     chart_labels = [data['created_at__date'].strftime('%Y-%m-%d') for data in sales_data]
-    chart_data = [data['total_sales'] or Decimal('0.00') for data in sales_data]  # Ensure no None values in data
+    chart_data = [data['total_sales'] or Decimal('0.00') for data in sales_data]
     chart_data = [float(value) for value in chart_data]
 
+    # Order by the created_at date
+    orders_query = orders_query.order_by('-created_at')
+
     # Pagination
-    paginator = Paginator(orders_query, 3)  # Show 3 orders per page
+    paginator = Paginator(orders_query, 30)  # Show 30 orders per page
     page_number = request.GET.get('page')
-    orders = paginator.get_page(page_number)
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        'orders': orders,
+        'orders': page_obj,  # Use the paginated results
         'overall_sales_count': overall_sales_count,
         'overall_success_amount': overall_success_amount,
         'overall_discount': overall_discount,
@@ -111,15 +123,6 @@ def sale_report_view(request):
 
     return render(request, 'adminside/sales_report.html', context)
 
-
-from io import BytesIO
-from django.http import HttpResponse
-from django.utils import timezone
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from datetime import timedelta
-from django.db.models import Sum
-from reportlab.lib.styles import getSampleStyleSheet
 
 def truncate_title(title, length=15):
     if len(title) > length:
@@ -402,3 +405,5 @@ def generate_invoice(request, order_number):
         response['Content-Disposition'] = f'attachment; filename="invoice_{order_number}.pdf"'
         return response
     return None
+
+

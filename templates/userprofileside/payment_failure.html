@@ -1,0 +1,22 @@
+<!-- templates/userprofileside/payment_failure.html -->
+{% extends "base.html" %}
+
+{% block title %}Payment Failed - SkyriseDecor{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg" style="width: 100%; max-width: 500px;">
+        <div class="card-body text-center">
+            <!-- Optional: Company Logo -->
+            <img src="" alt="SkyriseDecor Logo" class="mb-4" style="width: 120px;">
+            
+            <h2 class="card-title mb-3 text-danger">Payment Failed</h2>
+            <p class="card-text">{{ error_description }}</p>
+            <p class="card-text"><strong>Order ID:</strong> {{ order.id }}</p>
+            
+            <a href="{% url 'payment_view' order.id %}" class="btn btn-primary mt-4">Retry Payment</a>
+            <a href="{% url 'home' %}" class="btn btn-primary mt-4">Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

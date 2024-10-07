@@ -1,48 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
 {% block content %}
 
-<!-- Header-->
-<header class="py-5" style="background-color: #055160;;"> 
-    <div class="container px-4 px-lg-5 my-5">
-        <div class="text-center text-white">
-            <h1 class="display-4 fw-bolder">Login</h1>
-            <p class="lead fw-normal text-white-50 mb-0">Log In To Your Account...</p>
+<!-- Login Section -->
+<section class="login-section">
+    <div class="overlay"></div>
+    <div class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="login-form p-4 bg-white rounded shadow">
+                    <h3 class="text-center mb-4">Login</h3>
+                    <p class="text-center text-muted mb-4">Log in to your account to continue.</p>
+                    <form method="POST" action="{% url 'account_login' %}">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="username" class="visually-hidden">Username</label>
+                            <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="Username" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password" class="visually-hidden">Password</label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Password" required>
+                        </div>
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-secondary btn-lg">Login</button>
+                        </div>
+                        <div class="text-center mb-3">
+                            <a href="{% provider_login_url 'google' %}" class="btn btn-danger btn-lg w-100">Sign in with Google</a>
+                        </div>
+                        <!-- Forgot Password link -->
+                        <div class="text-center">
+                            <a href="{% url 'password_reset_request' %}" class="btn btn-success w-100">Forgot Password?</a>
+                        </div>
+                    </form>
+                    <!-- Optional: Add additional links or information here -->
+                </div>
+            </div>
         </div>
     </div>
-</header>
+</section>
 
-<div class="container">
-    <div class="row">
-        <center>
-            <div class="col-8">
-                {% load socialaccount %}
-                <br/><br/>
-                <form method="POST" action="{% url 'account_login' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="username" placeholder="Enter Your Username">
-                    </div>
-                    <div class="mb-3">
-                        <input type="password" class="form-control" name="password" placeholder="Enter Your Password">
-                    </div>
-                    <br/><br/>
-                    <button type="submit" class="btn btn-secondary">Login</button>
-                </form>
-                
-                
-                <a href="{% provider_login_url 'google' %}">Sign in with Google</a>
+<!-- Custom Styles -->
+<style>
+    /* Ensure the section covers the entire viewport */
+    .login-section {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        background-image: url("{% static 'images/background_image.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
 
-                <br/><br/>
-                <br/><br/>
-                <br/><br/>
-                <br/><br/>
-                <br/><br/>
-                <br/><br/>
-                <br/><br/>
-                <br/><br/>
-            </div>
-        </center>
-    </div>
-</div>
+    /* Overlay to darken the background image for better readability */
+    .login-section .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Adjust the opacity as needed */
+        z-index: 1;
+    }
+
+    /* Center the form within the section */
+    .login-form {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 575.98px) {
+        .login-form {
+            padding: 2rem 1rem;
+        }
+    }
+</style>
 
 {% endblock %}

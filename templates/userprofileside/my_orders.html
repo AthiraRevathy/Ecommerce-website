@@ -20,7 +20,7 @@
                             <th>Order Number</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Payment status</th>
+                            <th>Payment Status</th>
                             <th>Total</th>
                             <th>Payment Method</th>
                             <th>Actions</th>
@@ -34,46 +34,28 @@
                             <td>
                                 {% if order.status == 'Ordered' %}
                                     <span class="badge bg-info">{{ order.status }}</span>
-                                {% elif order.status == 'Completed' %}
+                                {% elif order.status == 'Delivered' %}
                                     <span class="badge bg-success">{{ order.status }}</span>
                                 {% elif order.status == 'Cancelled' %}
                                     <span class="badge bg-danger">{{ order.status }}</span>
                                 {% else %}
-                                    {{ order.status }}
+                                    <span class="badge bg-secondary">{{ order.status }}</span>
                                 {% endif %}
                             </td>
                             
                             <td>
-                                {% if order.payment_method == 'RazorPay' %}
-                                    {% if order.payment_status == 'Completed' %}
-                                        <span class="payment-status-completed">Paid</span>
-                                    {% else %}
-                                        <span class="payment-status-pending">{{ order.payment_status }}</span>
-                                    {% endif %}
-                                {% elif order.payment_method == 'COD' %}
-                                    {% if order.status == 'Delivered' %}
-                                        <span class="payment-status-completed">Paid</span>
-                                    {% else %}
-                                        <span class="payment-status-pending">Pending</span>
-                                    {% endif %}
+                                {% if order.payment_status == 'Pending' %}
+                                    <span class="payment-status-pending">{{ order.payment_status }}</span>
+                                {% elif order.payment_status == 'Paid' %}
+                                    <span class="payment-status-completed">{{ order.payment_status }}</span>
+                                {% elif order.payment_status == 'Failed' %}
+                                    <span class="payment-status-failed">{{ order.payment_status }}</span>
+                                {% elif order.payment_status == 'Refunded' %}
+                                    <span class="payment-status-refunded">{{ order.payment_status }}</span>
                                 {% else %}
-                                    {% if order.payment_status == 'Pending' %}
-                                        <span class="payment-status-pending">{{ order.payment_status }}</span>
-                                    {% elif order.payment_status == 'Completed' %}
-                                        <span class="payment-status-completed">{{ order.payment_status }}</span>
-                                    {% elif order.payment_status == 'Failed' %}
-                                        <span class="payment-status-failed">{{ order.payment_status }}</span>
-                                    {% elif order.payment_status == 'Refunded' %}
-                                        <span class="payment-status-refunded">{{ order.payment_status }}</span>
-                                    {% else %}
-                                        {{ order.payment_status }}
-                                    {% endif %}
+                                    {{ order.payment_status }}
                                 {% endif %}
                             </td>
-                            
-                            
-                            
-                    
                             
                             <td class="total-amount">${{ order.grand_total|floatformat:2 }}</td>
                             <td>{{ order.payment_method }}</td>
@@ -81,6 +63,14 @@
                                 <div class="d-flex justify-content-center align-items-center">
                                     {% if order.order_number %}
                                         <a href="{% url 'order_detail' order_number=order.order_number %}" class="btn btn-primary btn-sm me-2">View Details</a>
+                                        
+                                        <!-- Retry Payment Button for Failed Payments -->
+                                        {% if order.payment_status == 'Pending' and order.payment_method == 'razorpay' and  order.status != 'Delivered'%}
+
+                                            <a href="{% url 'payment_view' order.id %}" class="btn btn-warning btn-sm me-2">Retry Payment</a>
+                                        {% endif %}
+                                        
+                                        <!-- Cancel Order Button -->
                                         <form action="{% url 'cancel_order' order_number=order.order_number %}" method="post">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-times"></i></button>
@@ -91,11 +81,11 @@
                                 </div>
                             </td>
                         </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center">No orders found.</td>
-                    </tr>
-                    {% endfor %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No orders found.</td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             {% else %}

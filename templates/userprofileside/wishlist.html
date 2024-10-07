@@ -3,32 +3,42 @@
 
 {% block content %}
 <style>
-    /* Ensure the wishlist container is centered vertically and horizontally */
+    /* Wishlist Container */
     .wishlist-container {
         display: flex;
-        justify-content: center;   /* Horizontally center */
-        align-items: center;       /* Vertically center */
-        flex-direction: column;    /* Stack child elements vertically */
-        min-height: 80vh;          /* Occupy most of the viewport height */
-        margin: 0 auto;            /* Center the container horizontally */
-        padding: 0 15px;           /* Optional padding on the sides */
+        justify-content: center; /* Horizontally center */
+        align-items: center;     /* Vertically center */
+        flex-direction: column;  /* Stack child elements vertically */
+        min-height: 80vh;        /* Occupy most of the viewport height */
+        margin: 0 auto;          /* Center the container horizontally */
+        padding: 20px;           /* Padding around the container */
+        background-color: #f8f9fa; /* Light background for contrast */
+        border-radius: 8px;      /* Rounded corners */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     }
 
     .wishlist-container h2 {
-        margin-bottom: 20px;
+        margin-bottom: 30px;
         color: #343a40;
         text-align: center;  /* Center the title text */
+        font-family: 'Arial', sans-serif; /* Font family */
+        font-size: 2rem;    /* Larger font size */
     }
 
     .wishlist-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;  /* Space between the image and details */
+        justify-content: space-between; /* Space between the image and details */
         margin-bottom: 20px;
-        border-bottom: 1px solid #dee2e6;
-        padding-bottom: 20px;
-        width: 100%;          /* Full width inside the container */
-        max-width: 800px;     /* Limit maximum width */
+        padding: 15px;
+        background-color: #ffffff; /* White background for items */
+        border: 1px solid #dee2e6; /* Light border */
+        border-radius: 5px; /* Rounded corners for items */
+        transition: box-shadow 0.3s; /* Transition effect */
+    }
+
+    .wishlist-item:hover {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15); /* Shadow on hover */
     }
 
     .wishlist-item img {
@@ -55,6 +65,7 @@
     .wishlist-item .price {
         color: #ff5722;
         font-weight: bold;
+        font-size: 1.2rem; /* Increase price font size */
     }
 
     .wishlist-buttons {
@@ -175,6 +186,4 @@
     {% endif %}
 </div>
 
-
-    
 {% endblock %}

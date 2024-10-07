@@ -1,31 +1,55 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 
-<!-- Header-->
-<header class="py-5" style="background-color: #055160;">
-    <div class="container px-4 px-lg-5 my-5">
-        <div class="text-center text-white">
-            <h1 class="display-4 fw-bolder">Register</h1>
-            <p class="lead fw-normal text-white-50 mb-0">Register for a User Account...</p>
-        </div>
-    </div>
-</header>
+<!-- Apply the background image to the whole page -->
+<style>
+    body {
+        background: url('{% static 'images/background_image.jpg.jpg' %}') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh; /* Ensure it takes full viewport height */
+    }
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <br/><br/>
-            <form method="POST" action="{% url 'register' %}">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <br/><br/>
-                <button type="submit" class="btn btn-secondary">Register</button>
-            </form>
-            <br/><br/>
-            <!-- Corrected Forgot Password link -->
-            <a href="{% url 'password_reset_request' %}" class="btn btn-success">Forgot Password</a>
-            <br/><br/>
-        </div>
+    /* Right-aligned container for the form */
+    .right-aligned-container {
+        display: flex;
+        justify-content: flex-end; /* Aligns the content to the right */
+        align-items: center; /* Center vertically */
+        min-height: 100vh; /* Ensures content takes full height */
+        padding-right: 50px; /* Adjust padding as needed */
+    }
+
+    /* Style the form */
+    .form-container {
+        background-color: rgba(255, 255, 255, 0.8); 
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        width: 550px; /* Set a fixed width for the form */
+    }
+    
+    
+</style>
+
+<!-- Right-aligned container for the form -->
+<div class="right-aligned-container">
+    <!-- Container for the form with semi-transparent background -->
+    <div class="form-container">
+        <header class="text-center text-dark mb-4">
+            <h1 class="display-4 fw-bolder" style="color: #055160;">Register</h1>
+            <p class="lead fw-normal text-muted">Register for a User Account...</p>
+        </header>
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-secondary mt-3 w-100">Register</button>
+             <!-- Login Prompt -->
+        <p class="mt-3">
+            Already have an account? <a href="{% url 'account_login' %}">Login here</a>
+        </p>
+        </form>
+        <br/>
+        
     </div>
 </div>
 

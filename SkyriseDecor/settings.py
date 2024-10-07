@@ -147,10 +147,11 @@ AUTHENTICATION_BACKENDS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'prad_darsh'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Citrix!23'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'NAME': 'prad_darsh',
+        'USER': 'mysuperuser',
+        'PASSWORD': 'mysuperuser',
+        'HOST': 'prad-darsh.cj0eo6iqiluo.us-east-2.rds.amazonaws.com',
+        'PORT': '5432',
     }
 }
 

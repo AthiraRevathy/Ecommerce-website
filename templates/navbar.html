@@ -10,7 +10,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                 <li class="nav-item"><a class="nav-link" style="color: #055160;" aria-current="page" href="{% url 'home' %}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'about' %}">About</a></li>
-                <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'adminlog:admin_login' %}">Admin</a></li>
+                
                 
                 {% if not user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" style="color: #055160;" href="{% url 'login' %}">Login</a></li>
@@ -23,19 +23,11 @@
                         <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #055160;">Categories</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="{% url 'product_home' %}" style="color: #055160;">All Products</a></li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li><a class="dropdown-item" href="#" style="color: #055160;">Programming Books</a></li>
-                            <li><a class="dropdown-item" href="#" style="color: #055160;">Marketing Books</a></li>
+                            
                         </ul>
                     </li>
 
-                    <!-- Search Bar -->
-                    <li class="nav-item">
-                        <form class="d-flex" action="" method="GET">
-                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="q">
-                            <button class="btn btn-outline-success" type="submit">Search</button>
-                        </form>
-                    </li>
+                   
                 {% endif %}
             </ul>
 

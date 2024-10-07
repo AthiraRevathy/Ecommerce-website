@@ -1,12 +1,12 @@
-{% extends 'admin_base.html'%}
+{% extends 'admin_base.html' %}
 {% load static %}
 {% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Existing head content -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Order List - Admin Dashboard</title>
     <link rel="stylesheet" href="{% static 'admin/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/bootstrap.min.css' %}">
@@ -32,6 +32,16 @@
             color: #dc3545; /* Red */
             font-weight: bold;
         }
+
+        .status-pending {
+            color: #ffc107; /* Yellow */
+            font-weight: bold;
+        }
+
+        .status-failed {
+            color: #6c757d; /* Gray */
+            font-weight: bold;
+        }
     </style>
     <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
@@ -47,7 +57,7 @@
         <form method="get" class="form-inline mb-4">
             <div class="form-group mx-sm-3 mb-2">
                 <label for="search" class="sr-only">Search</label>
-                <input type="text" class="form-control" id="search" name="q" placeholder="Search by Customer" value="{{ request.GET.q }}">
+                <input type="text" class="form-control" id="search" name="q" placeholder="Search by Order Number" value="{{ request.GET.q }}">
             </div>
             <div class="form-group mx-sm-3 mb-2">
                 <label for="status" class="sr-only">Status</label>
@@ -57,6 +67,8 @@
                     <option value="Shipped" {% if request.GET.status == 'Shipped' %}selected{% endif %}>Shipped</option>
                     <option value="Delivered" {% if request.GET.status == 'Delivered' %}selected{% endif %}>Delivered</option>
                     <option value="Cancelled" {% if request.GET.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="Pending" {% if request.GET.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Failed" {% if request.GET.status == 'Failed' %}selected{% endif %}>Failed</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary mb-2">Search</button>
@@ -72,6 +84,7 @@
                     <th>Delivery Charge</th>
                     <th>Total</th>
                     <th>Order Status</th>
+                    <th>Payment Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -80,7 +93,7 @@
                 <tr>
                     <td>{{ order.order_number }}</td>
                     <td>{{ order.user }}</td>
-                    <td>{{ order.payment_method }}</td>
+                    <td>{{ order.payment_method }}</td>  <!-- Added this line to display the payment method -->
                     <td>{{ order.address }}</td>
                     <td>${{ order.shipping_fee }}</td>
                     <td>${{ order.grand_total }}</td>
@@ -93,21 +106,37 @@
                             <span class="status-delivered">{{ order.status }}</span>
                         {% elif order.status == 'Cancelled' %}
                             <span class="status-cancelled">{{ order.status }}</span>
+                        {% elif order.status == 'Pending' %}
+                            <span class="status-pending">{{ order.status }}</span>
+                        {% elif order.status == 'Failed' %}
+                            <span class="status-failed">{{ order.status }}</span>
                         {% else %}
                             {{ order.status }}
                         {% endif %}
                     </td>
+                    <td>{{order.payment_status}}</td>
                     <td>
                         <button class="btn btn-primary btn-sm update-status-btn" 
                                 data-order-number="{{ order.order_number }}" 
                                 data-current-status="{{ order.status }}"
-                                {% if order.status == 'Cancelled' %}disabled{% endif %}>
+                                {% if order.status == 'Ordered' and order.payment_status == 'Pending' and order.payment_method == 'razorpay' %}disabled{% endif %}
+                                {% if order.status in disabled_statuses %}disabled{% endif %}>
+                                
                             Update Status
                         </button>
+
+<!-- Message indicating why the button is disabled -->
+{% if order.status == 'Ordered' and order.payment_status == 'Pending' and order.payment_method == 'razorpay' %}
+<div class="alert alert-warning" style="margin-top: 10px;">
+    Payment is pending. You cannot update the status at this moment.
+</div>
+{% endif %}
                     </td>
+                    
                 </tr>
                 {% endfor %}
             </tbody>
+            
         </table>
         
         <!-- Status Update Modal -->
@@ -142,27 +171,27 @@
 
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         $(document).ready(function() {
             $('.update-status-btn').on('click', function() {
                 var orderNumber = $(this).data('order-number');
                 var currentStatus = $(this).data('current-status');
                 $('#order_number').val(orderNumber);
-                $('#status').val(currentStatus);
-                $('#statusModal').modal('show');
-            });
-
-            // Optional: Disable button if the status is 'Cancelled'
-            $('#statusForm').on('submit', function() {
-                var newStatus = $('#status').val();
-                if (newStatus === 'Cancelled') {
-                    $('.update-status-btn').prop('disabled', true);
+                
+                // Reset the select to the first option or a default value
+                $('#status').val('Ordered');
+                
+                // Disable 'Delivered' option if current status is 'Pending' or 'Failed'
+                if (currentStatus === 'Pending' || currentStatus === 'Failed') {
+                    $('#status option[value="Delivered"]').prop('disabled', true);
+                } else {
+                    $('#status option[value="Delivered"]').prop('disabled', false);
                 }
+
+                $('#statusModal').modal('show');
             });
         });
     </script>
 </body>
 </html>
-{%endblock%}
+{% endblock %}

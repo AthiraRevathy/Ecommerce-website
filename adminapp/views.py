@@ -12,6 +12,8 @@ from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from django.contrib.auth import get_user_model  
 from django.contrib.auth.decorators import login_required  
 from products.models import Product 
+from django.db.models import Q
+
 
 
 
@@ -47,6 +49,7 @@ def admin_login(request):
         'form': form,
     }
     return render(request, 'adminside/admin_login.html', context)
+
 
 def admin_dashboard(request):
     # Determine the time period for filtering orders
@@ -163,24 +166,28 @@ def order_list(request):
     # Apply search filter if a query is provided
     if query:
         orders = orders.filter(
-            user__username__icontains=query  # Assuming 'user__username' is the field to search
+            Q(user__username__icontains=query) |  # Search by username
+            Q(order_number__icontains=query)  # Search by order number (id)
         )
     
     # Apply status filter if a status is provided
     if status_filter:
         orders = orders.filter(status=status_filter)
     
+    # Define statuses that should disable the "Update Status" button
+    disabled_statuses = ['Cancelled', 'Pending', 'Failed']
+    
     # Pass the orders to the template
     context = {
         'orders': orders,
         'query': query,
         'status_filter': status_filter,
+        'disabled_statuses': disabled_statuses,
     }
     
     return render(request, 'adminside/adminorder_list.html', context)
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from product_cart.models import Order
+# adminlog/views.py
+
 
 def update_order_status(request):
     if request.method == 'POST':
@@ -191,22 +198,33 @@ def update_order_status(request):
             messages.error(request, 'Order number is required.')
             return redirect('adminlog:order_list')
 
-        try:
-            order = get_object_or_404(Order, order_number=order_number)
-        except ValueError as e:
-            messages.error(request, f'Error fetching order: {e}')
-            return redirect('adminlog:order_list')
+        order = get_object_or_404(Order, order_number=order_number)
 
-        if new_status not in ['Pending', 'Confirmed', 'Rejected', 'Delivered']:
+        # Define valid statuses based on the model's STATUS_CHOICES
+        valid_statuses = [choice[0] for choice in Order.STATUS_CHOICES]
+
+        if new_status not in valid_statuses:
             messages.error(request, 'Invalid status value.')
             return redirect('adminlog:order_list')
 
+        # Update order status
         order.status = new_status
+
+        # Debugging: Log current payment method and new status
+        print(f'Current Payment Method: {order.payment_method}, New Status: {new_status}')
+        
+        # Update payment status if the new order status is Delivered and payment method is COD
+        if new_status == 'Delivered':
+            if order.payment_method.upper() == 'COD':
+                order.payment_status = 'Paid'
+                print('Payment status updated to Paid')
+            else:
+                print('Delivered status set for non-COD payment method')
+        
+        # Save the updated order
         order.save()
 
         messages.success(request, 'Order status updated successfully!')
         return redirect('adminlog:order_list')
 
     return redirect('adminlog:order_list')
-
-

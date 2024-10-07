@@ -1,66 +1,73 @@
-{%extends 'base.html' %}
-{% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment</title>
-    {% load static %}
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-</head>
-<body>
-    <h1>Complete Your Payment</h1>
+<!-- templates/userprofileside/payment.html -->
+{% extends "base.html" %}
 
-    <script>
+{% block title %}Complete Your Payment - SkyriseDecor{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg" style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Complete Your Payment</h3>
+            
+            <button id="pay-button" class="btn btn-primary w-100">Pay Now</button>
+        </div>
+    </div>
+</div>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
         var options = {
-            "key": "{{ 'rzp_test_EQkCb6St5A2pXy' }}", // Your Razorpay Key ID
-            "amount": "{{ amount }}", // Amount in paise (e.g., 50000 paise = 500 INR)
+            "key": "rzp_test_EQkCb6St5A2pXy", // Enter the Key ID generated from the Dashboard
+            "amount": "{{ amount }}", // Amount is in currency subunits. Default currency is INR.
             "currency": "{{ currency }}",
-            "order_id": "{{ razorpay_order_id }}", // Order ID created by Razorpay
-            "handler": function (response) {
-                // Handle success
-                fetch('/payment/payment-callback/', {
-                    method: 'POST',
-                    
+            "name": "SkyriseDecor",
+            "description": "Purchase Description",
+            "order_id": "{{ razorpay_order_id }}", // This is the order ID created on your server
+            "handler": function (response){
+                // On successful payment, send data to server for verification
+                fetch("{% url 'payment_callback' %}", {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": "{{ csrf_token }}"
                     },
-                    body: JSON.stringify({
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature
-                    })
+                    body: `razorpay_order_id=${response.razorpay_order_id}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_signature=${response.razorpay_signature}`
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         window.location.href = data.redirect_url;
-                       
-                        
                     } else {
-                        alert('Payment verification failed. Please try again.');
+                        window.location.href = data.redirect_url || '/payment/failure/';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('There was an error processing your payment.');
+                    window.location.href = '/payment/failure/';
                 });
             },
             "prefill": {
-                "name": "{{ user.get_full_name }}",
-                "email": "{{ user.email }}",
-                "contact": "{{ user.profile.phone_number }}" // Adjust according to your user model
+                "name": "{{user.first_name}}",
+                "email": "{{user.email}}",
+                "contact": "{{user.phonenumber}}"
             },
             "theme": {
-                "color": "#F37254"
+                "color": "#3399cc"
+            },
+            "modal": {
+                "ondismiss": function(){
+                    // User closed the payment modal without completing the payment
+                    window.location.href = "{{ payment_failure_url }}";
+                }
             }
         };
-
         var rzp1 = new Razorpay(options);
-        rzp1.open();
-    </script>
-</body>
+        document.getElementById('pay-button').onclick = function(e){
+            rzp1.open();
+            e.preventDefault();
+        }
+    });
+</script>
 {% endblock %}
